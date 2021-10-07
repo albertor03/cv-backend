@@ -41,15 +41,6 @@ THIRD_APPS = [
 
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS + THIRD_APPS
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'djongo',
-        'NAME': 'backend',
-        'CLIENT': {
-            'host': f'mongodb://{os.environ["DB_USER"]}:{os.environ["DB_PASS"]}@{os.environ["DB_HOST"]}'
-        }
-    }
-}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
