@@ -16,7 +16,7 @@ STATIC_URL = '/static/'
 MEDIA_URL = f"{BASE_DIR.parent}/media/"
 MEDIA_ROOT = BASE_DIR.parent / 'media'
 
-# TOKEN_EXPIRED_AFTER_SECONDS = int(os.environ['TIMEOUT_TOKEN'])
+TOKEN_EXPIRED_AFTER_SECONDS = int(os.environ['TIMEOUT_TOKEN'])
 
 DATABASES = {
     'default': {
