@@ -104,3 +104,6 @@ USE_L10N = True
 USE_TZ = True
 
 # AUTH_USER_MODEL = 'users.User'
+print(BASE_DIR)
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+print(STATIC_ROOT)
