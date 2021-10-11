@@ -22,7 +22,7 @@ TOKEN_EXPIRED_AFTER_SECONDS = int(os.environ['TIMEOUT_TOKEN'])
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'backend',
+        'NAME': os.environ["DB_NAME"],
         'CLIENT': {
             'host': f'mongodb+srv://{os.environ["DB_USER"]}:{os.environ["DB_PASS"]}@{os.environ["DB_HOST"]}'
         }
