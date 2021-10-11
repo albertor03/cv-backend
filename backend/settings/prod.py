@@ -20,11 +20,14 @@ MEDIA_ROOT = BASE_DIR.parent / 'media'
 TOKEN_EXPIRED_AFTER_SECONDS = int(os.environ['TIMEOUT_TOKEN'])
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'djongo',
-        'NAME': os.environ["DB_NAME"],
-        'USER': {os.environ["DB_USER"]},
-        'PASSWORD': {os.environ["DB_PASS"]},
-        'HOST': f'mongodb+srv://{os.environ["DB_USER"]}:{os.environ["DB_PASS"]}@{os.environ["DB_HOST"]}'
-    }
+  'default': {
+      'ENGINE': 'djongo',
+      'NAME': os.environ["DB_NAME"],
+      'CLIENT': {
+          'host': f'mongodb+srv://{os.environ["DB_USER"]}:{os.environ["DB_PASS"]}@{os.environ["DB_DOMAIN"]}.mongodb.net/{os.environ["DB_NAME"]}?retryWrites=true&w=majority',
+          'port': 27017,
+          'username': os.environ["DB_USER"],
+          'password': os.environ["DB_PASS"],
+      }
+  },
 }
