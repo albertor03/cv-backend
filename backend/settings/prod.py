@@ -23,8 +23,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'djongo',
         'NAME': os.environ["DB_NAME"],
-        'CLIENT': {
-            'host': f'mongodb+srv://{os.environ["DB_USER"]}:{os.environ["DB_PASS"]}@{os.environ["DB_HOST"]}'
-        }
+        'USER': {os.environ["DB_USER"]},
+        'PASSWORD': {os.environ["DB_PASS"]},
+        'HOST': f'mongodb+srv://{os.environ["DB_USER"]}:{os.environ["DB_PASS"]}@{os.environ["DB_HOST"]}'
     }
 }
