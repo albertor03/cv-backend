@@ -1,5 +1,4 @@
 from .base import *
-import django_heroku
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -30,6 +29,3 @@ DATABASES = {
       }
   },
 }
-
-# Activate Django-Heroku.
-django_heroku.settings(locals(), databases=False),
