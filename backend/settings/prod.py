@@ -1,4 +1,5 @@
 from .base import *
+import django_heroku
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -25,9 +26,10 @@ DATABASES = {
       'NAME': os.environ["DB_NAME"],
       'CLIENT': {
           'host': f'mongodb+srv://{os.environ["DB_USER"]}:{os.environ["DB_PASS"]}@{os.environ["DB_DOMAIN"]}.mongodb.net/{os.environ["DB_NAME"]}?retryWrites=true&w=majority',
-          'port': 27017,
-          'username': os.environ["DB_USER"],
-          'password': os.environ["DB_PASS"],
+          'authMechanism': 'SCRAM-SHA-1'
       }
   },
 }
+
+# Activate Django-Heroku.
+django_heroku.settings(locals(), databases=False),
