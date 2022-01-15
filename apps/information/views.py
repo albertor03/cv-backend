@@ -16,12 +16,11 @@ class PersonalInformationAPIView(generics.ListCreateAPIView):
 
     def post(self, request, **kwargs):
         info = self.get_queryset()
-        self.data = {'data': {}, 'errors': ['Information not found.']}
+        self.data = {'data': {}, 'errors': ['There is information recorded.']}
         self.statusCode = status.HTTP_406_NOT_ACCEPTABLE
-
-        if not info:
-            serializer = PersonalInformationSerializer(data=request.data)
-            if serializer.is_valid():
+        serializer = PersonalInformationSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            if not info:
                 serializer.save()
                 self.data['data'] = serializer.data
                 self.data['errors'] = []
