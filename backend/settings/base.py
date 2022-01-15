@@ -33,7 +33,8 @@ BASE_APPS = [
 ]
 
 LOCAL_APPS = [
-    'apps.users.apps.UserConfig'
+    'apps.users.apps.UserConfig',
+    'apps.information.apps.InformationConfig'
 ]
 
 THIRD_APPS = [
