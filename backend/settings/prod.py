@@ -24,7 +24,7 @@ DATABASES = {
       'ENGINE': 'djongo',
       'NAME': os.environ["DB_NAME"],
       'CLIENT': {
-          'host': f'mongodb://{os.environ["DB_USER"]}:{os.environ["DB_PASS"]}@{os.environ["DB_DOMAIN"]}.mongodb.net/{os.environ["DB_NAME"]}?retryWrites=true&w=majority',
+          'host': f'mongodb+srv://{os.environ["DB_USER"]}:{os.environ["DB_PASS"]}@{os.environ["DB_DOMAIN"]}.mongodb.net/{os.environ["DB_NAME"]}?retryWrites=true&w=majority',
           'authMechanism': 'SCRAM-SHA-1'
       }
   },
