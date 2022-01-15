@@ -29,7 +29,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser, PermissionsMixin):
     _id = models.ObjectIdField()
-    username = models.CharField(max_length=255, unique=True)
+    username = models.CharField('Username', max_length=255, unique=True)
     email = models.EmailField('Email', max_length=255, unique=True)
     first_name = models.CharField('First Name', max_length=255, blank=True, null=True)
     last_name = models.CharField('Last Name', max_length=255, blank=True, null=True)
