@@ -105,8 +105,8 @@ class CustomJWTAuthentication(authentication.BaseAuthentication):
                              'message': e.args[0]})
 
         raise InvalidToken({
-            'detail': _('Given token not valid for any token type'),
-            'messages': messages,
+            'detail': _(''),
+            'error': ['Token is invalid or expired'],
         })
 
     def get_user(self, validated_token):
