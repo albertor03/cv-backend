@@ -9,7 +9,7 @@ class JobModels(models.Model):
     start_date = models.DateTimeField('Start Date')
     end_date = models.DateTimeField('Start Date', blank=True, null=True)
     currently = models.BooleanField(default=False)
-    address = models.CharField('Address', max_length=100, blank=True, null=True)
+    address = models.CharField('Address', max_length=100)
     created_at = models.DateTimeField('Created at', auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField('Updated at', auto_now=True, auto_now_add=False)
 
