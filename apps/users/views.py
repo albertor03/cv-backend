@@ -1,17 +1,34 @@
+import jwt
+
 from bson import ObjectId
+
+from django.contrib.auth import authenticate
+from django.utils import timezone
+from django.conf import settings
+
 from rest_framework import status
-from rest_framework.response import Response
 from rest_framework import generics
+from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 from .models import User
-from .serializers import UserRegisterSerializer, UserSerializer
+from .serializers import (
+    UserRegisterSerializer,
+    UserSerializer
+)
 
 
 class SingUpUserApiView(generics.CreateAPIView):
     serializer_class = UserRegisterSerializer
     data = {}
     statusCode = status.HTTP_400_BAD_REQUEST
+    permission_classes = [AllowAny]
 
     def post(self, request, **kwargs):
         serializer = UserRegisterSerializer(data=request.data)
@@ -25,7 +42,6 @@ class SingUpUserApiView(generics.CreateAPIView):
 
 
 class AllUserApiView(generics.ListAPIView):
-
     data = {}
     error = []
     statusCode = status.HTTP_200_OK
@@ -99,3 +115,61 @@ class DetailUserApiView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(self.data, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LoginAPIView(TokenObtainPairView):
+    serializer_class = TokenObtainPairSerializer
+    data = {'data': dict(), 'errors': ['Invalid credentials.']}
+    statusCode = status.HTTP_400_BAD_REQUEST
+
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username', '')
+        password = request.data.get('password', '')
+        user = authenticate(
+            username=username,
+            password=password
+        )
+        if user:
+            if not user.is_active:
+                self.data['errors'] = ['Inactive user.']
+                self.statusCode = status.HTTP_403_FORBIDDEN
+            else:
+                login = self.serializer_class(data=request.data)
+                if login.is_valid():
+                    decode_token = DecodeToken().decode_token(login.validated_data['access'])
+                    data = {'token': login.validated_data['access'], 'refresh': login.validated_data['refresh'],
+                            'exp': decode_token['exp']}
+                    self.data['data'] = data
+                    self.data['errors'].clear()
+                    self.statusCode = status.HTTP_200_OK
+                    user.last_login = timezone.now()
+                    user.save()
+        else:
+            self.data['data'] = {}
+
+        return Response(self.data, status=self.statusCode)
+
+
+class LogoutAPIView(GenericAPIView):
+    data = {'data': 'Successfully logged out.', 'errors': []}
+    statusCode = status.HTTP_200_OK
+
+    def get(self, request):
+        token = request.headers['Authorization'].split()[1]
+        decode_token = DecodeToken().decode_token(token)
+        user = User.objects.filter(_id=ObjectId(decode_token['user_id'])).first()
+        if user:
+            RefreshToken.for_user(user)
+        else:
+            self.data['data'] = ''
+            self.data['errors'] = ['Invalid token.']
+            self.statusCode = status.HTTP_400_BAD_REQUEST
+
+        return Response(self.data, status=self.statusCode)
+
+
+class DecodeToken:
+
+    @staticmethod
+    def decode_token(token):
+        return jwt.decode(token, settings.SIMPLE_JWT['SIGNING_KEY'], algorithms=[settings.SIMPLE_JWT['ALGORITHM']],)
