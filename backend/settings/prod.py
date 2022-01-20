@@ -17,8 +17,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = f"{BASE_DIR.parent}/media/"
 MEDIA_ROOT = BASE_DIR.parent / 'media'
 
-TOKEN_EXPIRED_AFTER_SECONDS = int(os.environ['TIMEOUT_TOKEN'])
-
 DATABASES = {
   'default': {
       'ENGINE': 'djongo',
@@ -29,3 +27,6 @@ DATABASES = {
       }
   },
 }
+
+SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'] = timedelta(minutes=int(os.environ['TIMEOUT_TOKEN']))
+SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'] = timedelta(minutes=int(os.environ['TIMEOUT_REFRESH_TOKEN']))

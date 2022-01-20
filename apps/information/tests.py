@@ -1,30 +1,12 @@
-import random
-
-from faker import Faker
-
 from django.urls import reverse
 
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
-from rest_framework.test import APITestCase
 
-faker = Faker()
+from ..tests_folder.set_up import TestInformationSetUp, Faker, LoginUser
 
 
-class UserRegistrationTestCases(APITestCase):
-
-    def setUp(self) -> None:
-        name = str(faker.name())
-        self.data = {
-            "first_name": name.split(' ')[0],
-            "last_name": name.split(' ')[1],
-            "email": f"{name.lower().replace(' ', '')}@mailinator.com",
-            "profession": "Professional Testing",
-            "phone": "123456789",
-            "address": faker.address()
-        }
-        self.resp = self.client.post(reverse('info'), self.data)
-
+class UserRegistrationTestCasesUser(TestInformationSetUp):
     def test_01_register_new_information(self):
         self.assertEqual(self.resp.status_code, status.HTTP_201_CREATED)
         self.assertTrue(self.resp.data['data']['_id'])
@@ -40,7 +22,7 @@ class UserRegistrationTestCases(APITestCase):
     def test_03_register_an_information_without_required_fields(self):
         data = {
             "phone": "123456789",
-            "address": faker.address()
+            "address": Faker().address()
         }
         resp = self.client.post(reverse('info'), data)
         first = ErrorDetail(resp.data['first_name'][0]).title()
@@ -54,7 +36,10 @@ class UserRegistrationTestCases(APITestCase):
         self.assertEqual(profession, 'This Field Is Required.')
 
 
-class UserListTestCases(APITestCase):
+class UserListTestCasesUser(LoginUser):
+
+    def setUp(self) -> None:
+        self.login()
 
     def test_01_empty_list(self):
         resp = self.client.get(reverse('info'))
@@ -62,14 +47,14 @@ class UserListTestCases(APITestCase):
         self.assertFalse(resp.data)
 
     def test_02_list_information(self):
-        name = str(faker.name())
+        name = str(Faker().name())
         data = {
             "first_name": name.split(' ')[0],
             "last_name": name.split(' ')[1],
             "email": f"{name.lower().replace(' ', '')}@mailinator.com",
             "profession": "Professional Testing",
             "phone": "123456789",
-            "address": faker.address()
+            "address": Faker().address()
         }
         self.client.post(reverse('info'), data)
         resp = self.client.get(reverse('info'))
@@ -79,19 +64,7 @@ class UserListTestCases(APITestCase):
         self.assertEqual(len(resp.data), 1)
 
 
-class UserDetailTestCases(APITestCase):
-
-    def setUp(self) -> None:
-        name = str(faker.name())
-        self.data = {
-            "first_name": name.split(' ')[0],
-            "last_name": name.split(' ')[1],
-            "email": f"{name.lower().replace(' ', '')}@mailinator.com",
-            "profession": "Professional Testing",
-            "phone": "123456789",
-            "address": faker.address()
-        }
-        self.resp = self.client.post(reverse('info'), self.data)
+class UserDetailTestCasesUser(TestInformationSetUp):
 
     def test_01_retrieve_information(self):
         _id = self.resp.data['data']['_id']
@@ -117,7 +90,6 @@ class UserDetailTestCases(APITestCase):
         self.assertEqual(resp.data['data']['profession'], self.data['profession'])
 
     def test_03_delete_information(self):
-        _id = self.resp.data['data']['_id']
-        resp = self.client.delete(reverse('info_detail', kwargs={'pk': _id}))
+        resp = self.client.delete(reverse('info_detail', kwargs={'pk': self.resp.data['data']['_id']}))
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(resp.data)
