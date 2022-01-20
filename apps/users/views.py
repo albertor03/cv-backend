@@ -15,7 +15,6 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 
 from .models import User
 from .serializers import (
@@ -135,7 +134,9 @@ class LoginAPIView(TokenObtainPairView):
             else:
                 login = self.serializer_class(data=request.data)
                 if login.is_valid():
-                    data = {'token': login.validated_data['access'], 'refresh': login.validated_data['refresh']}
+                    decode_token = DecodeToken().decode_token(login.validated_data['access'])
+                    data = {'token': login.validated_data['access'], 'refresh': login.validated_data['refresh'],
+                            'exp': decode_token['exp']}
                     self.data['data'] = data
                     self.data['errors'].clear()
                     self.statusCode = status.HTTP_200_OK
@@ -148,15 +149,25 @@ class LoginAPIView(TokenObtainPairView):
 
 
 class LogoutAPIView(GenericAPIView):
-    def get(self, request):
-        token = request.headers['Authorization']
-        de = jwt.decode(
-            token,
-            settings.SIMPLE_JWT['SIGNING_KEY'],
-            algorithms=[settings.SIMPLE_JWT['ALGORITHM']],
-        )
-        user = User.objects.filter(_id=ObjectId(de['user_id'])).first()
-        if user.exists():
-            RefreshToken.for_user(user)
-        return Response({'data': "hola"}, status=status.HTTP_200_OK)
+    data = {'data': 'Successfully logged out.', 'errors': []}
+    statusCode = status.HTTP_200_OK
 
+    def get(self, request):
+        token = request.headers['Authorization'].split()[1]
+        decode_token = DecodeToken().decode_token(token)
+        user = User.objects.filter(_id=ObjectId(decode_token['user_id'])).first()
+        if user:
+            RefreshToken.for_user(user)
+        else:
+            self.data['data'] = ''
+            self.data['errors'] = ['Invalid token.']
+            self.statusCode = status.HTTP_400_BAD_REQUEST
+
+        return Response(self.data, status=self.statusCode)
+
+
+class DecodeToken:
+
+    @staticmethod
+    def decode_token(token):
+        return jwt.decode(token, settings.SIMPLE_JWT['SIGNING_KEY'], algorithms=[settings.SIMPLE_JWT['ALGORITHM']],)
