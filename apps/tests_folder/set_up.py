@@ -1,5 +1,7 @@
+from datetime import datetime
+
 from bson import ObjectId
-from faker import Faker
+from chance import chance
 
 from django.urls import reverse
 
@@ -9,14 +11,40 @@ from ..users.models import User
 
 
 def generate_user():
-    name = str(Faker().name())
+    name = chance.name()
+    last = chance.last()
+    pwd = chance.string()
     return {
-        "username": name.lower().replace(' ', ''),
-        "first_name": name.split(' ')[0],
-        "last_name": name.split(' ')[1],
-        "email": f"{name.lower().replace(' ', '')}@mailinator.com",
-        "password": "Cenpos*01",
-        "confirm_password": "Cenpos*01"
+        "username": f"{name}{last}",
+        "first_name": name,
+        "last_name": last,
+        "email": f"{name}{last}@mailinator.com",
+        "password": pwd,
+        "confirm_password": pwd
+    }
+
+
+def generate_job():
+    return {
+        "position": chance.string(),
+        "company_name": chance.string(),
+        "start_date": datetime.now(),
+        "end_date": datetime.now(),
+        "currently": chance.boolean(),
+        "address": chance.country()
+    }
+
+
+def generate_data():
+    name = chance.name()
+    last = chance.last()
+    return {
+        "first_name": name,
+        "last_name": last,
+        "email": f"{name}{last}@mailinator.com",
+        "profession": "Professional Testing",
+        "phone": chance.phone(),
+        "address": chance.city()
     }
 
 
@@ -58,17 +86,13 @@ class TestInformationSetUp(LoginUser):
 
     def setUp(self) -> None:
         self.login()
-        self.data = self.generate_data()
+        self.data = generate_data()
         self.resp = self.client.post(reverse('info'), self.data)
 
-    @staticmethod
-    def generate_data():
-        name = str(Faker().name())
-        return {
-            "first_name": name.split(' ')[0],
-            "last_name": name.split(' ')[1],
-            "email": f"{name.lower().replace(' ', '')}@mailinator.com",
-            "profession": "Professional Testing",
-            "phone": "123456789",
-            "address": Faker().address()
-        }
+
+class TestJobSetUp(LoginUser):
+
+    def setUp(self) -> None:
+        self.login()
+        self.data = generate_job()
+        self.resp = self.client.post(reverse('list_create_job'), self.data)
