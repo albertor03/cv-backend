@@ -8,7 +8,6 @@ from django.conf import settings
 
 from rest_framework import status
 from rest_framework import generics
-from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,7 +19,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import User
 from .serializers import (
     UserRegisterSerializer,
-    UserSerializer
+    UserSerializer,
+    RestorePasswordSerializer,
 )
 
 
@@ -150,7 +150,7 @@ class LoginAPIView(TokenObtainPairView):
         return Response(self.data, status=self.statusCode)
 
 
-class LogoutAPIView(GenericAPIView):
+class LogoutAPIView(APIView):
     data = {'data': 'Successfully logged out.', 'errors': []}
     statusCode = status.HTTP_200_OK
 
@@ -164,6 +164,27 @@ class LogoutAPIView(GenericAPIView):
             self.data['data'] = ''
             self.data['errors'] = ['Invalid token.']
             self.statusCode = status.HTTP_400_BAD_REQUEST
+
+        return Response(self.data, status=self.statusCode)
+
+
+class ResetPasswordOfLoggedInUser(generics.UpdateAPIView):
+    serializer_class = RestorePasswordSerializer
+    data = {'data': '', 'errors': ['Invalid request.']}
+    statusCode = status.HTTP_400_BAD_REQUEST
+
+    def patch(self, request, *args, **kwargs):
+        token = request.headers['Authorization'].split()[1]
+        decode_token = DecodeToken().decode_token(token)
+        request.data['user_id'] = decode_token['user_id']
+        user = User.objects.filter(_id=ObjectId(decode_token['user_id'])).first()
+
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.update(user, serializer.validated_data)
+            self.data['data'] = 'Password updated successfully.'
+            self.data['errors'].clear()
+            self.statusCode = status.HTTP_200_OK
 
         return Response(self.data, status=self.statusCode)
 
