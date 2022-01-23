@@ -11,7 +11,7 @@ from ..users.models import User
 
 
 def generate_user():
-    name = chance.name()
+    name = chance.first()
     last = chance.last()
     pwd = chance.string()
     return {
@@ -96,3 +96,20 @@ class TestJobSetUp(LoginUser):
         self.login()
         self.data = generate_job()
         self.resp = self.client.post(reverse('list_create_job'), self.data)
+
+
+class TestChangePwdSetUp(LoginUser):
+    newPwd = chance.string()
+    oldPwd = ""
+    originUser = ""
+
+    def setUp(self) -> None:
+        self.login()
+        self.oldPwd = self.data['password']
+        self.originUser = self.data['username']
+        self.data = {
+            "old_password": self.oldPwd,
+            "new_password": self.newPwd,
+            "confirm_password": self.newPwd
+        }
+        self.resp = self.client.patch(reverse('reset_password_of_user_logged'), self.data)
