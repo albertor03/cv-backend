@@ -4,7 +4,11 @@ from django.urls import reverse
 
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
-from ..tests_folder.set_up import TestUserSetUp, RegistrationUser
+from ..tests_folder.set_up import (
+    TestUserSetUp,
+    RegistrationUser,
+    TestChangePwdSetUp
+)
 
 
 class UserRegistrationTestCases(RegistrationUser):
@@ -111,3 +115,25 @@ class DetailUserTestCasesUser(TestUserSetUp):
         self.assertFalse(resp.data['data'])
         self.assertTrue(resp.data['errors'])
         self.assertEqual(resp.data['errors'][0], 'User not found.')
+
+
+class ResetPasswordTestCasesUser(TestChangePwdSetUp):
+
+    def test_01_change_password(self):
+        self.assertEqual(self.resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.resp.data['data'], 'Password updated successfully.')
+        self.assertFalse(self.resp.data['errors'])
+
+    def test_03_attempt_to_login_with_changed_password(self):
+        data = {'username': self.originUser, 'password': self.oldPwd}
+        resp = self.client.post(reverse('login'), data)
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(resp.data['errors'][0], 'Invalid credentials.')
+
+    def test_02_login_with_new_password(self):
+        data = {'username': self.originUser, 'password': self.newPwd}
+        resp = self.client.post(reverse('login'), data)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data['data'])
+        self.assertTrue(resp.data['data']['token'])
+        self.assertFalse(resp.data['errors'])

@@ -119,10 +119,11 @@ class DetailUserApiView(APIView):
 
 class LoginAPIView(TokenObtainPairView):
     serializer_class = TokenObtainPairSerializer
-    data = {'data': dict(), 'errors': ['Invalid credentials.']}
+    data = {}
     statusCode = status.HTTP_400_BAD_REQUEST
 
     def post(self, request, *args, **kwargs):
+        self.data = {'data': dict(), 'errors': ['Invalid credentials.']}
         username = request.data.get('username', '')
         password = request.data.get('password', '')
         user = authenticate(
@@ -176,7 +177,13 @@ class ResetPasswordOfLoggedInUser(generics.UpdateAPIView):
     def patch(self, request, *args, **kwargs):
         token = request.headers['Authorization'].split()[1]
         decode_token = DecodeToken().decode_token(token)
-        request.data['user_id'] = decode_token['user_id']
+        try:
+            request.data._mutable = True
+            request.data['user_id'] = decode_token['user_id']
+            request.data._mutable = False
+        except AttributeError as e:
+            request.data['user_id'] = decode_token['user_id']
+
         user = User.objects.filter(_id=ObjectId(decode_token['user_id'])).first()
 
         serializer = self.serializer_class(data=request.data)
