@@ -8,7 +8,8 @@ from .views import (
     AllUserApiView,
     LoginAPIView,
     LogoutAPIView,
-    ResetPasswordOfLoggedInUser
+    ResetPasswordOfLoggedInUserAPIView,
+    ActiveUserAPIView
 )
 
 from rest_framework_simplejwt.views import (
@@ -22,7 +23,8 @@ urlpatterns = [
     path('login/', LoginAPIView.as_view(), name='login'),
     path('logout/', LogoutAPIView.as_view(), name='logout'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('reset-passowrd-logged/', ResetPasswordOfLoggedInUser.as_view(), name='reset_password_of_user_logged'),
+    path('reset-passowrd-logged/', ResetPasswordOfLoggedInUserAPIView.as_view(), name='reset_password_of_user_logged'),
+    path('active-user/<str:pk>', ActiveUserAPIView.as_view(), name='active_user'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
