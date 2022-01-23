@@ -23,6 +23,8 @@ from .serializers import (
     RestorePasswordSerializer,
 )
 
+from ..send_email.email import SendEmail
+
 
 class SingUpUserApiView(generics.CreateAPIView):
     serializer_class = UserRegisterSerializer
@@ -31,12 +33,28 @@ class SingUpUserApiView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
     def post(self, request, **kwargs):
+        self.data = {'data': {}, 'errors': ['Bad request.']}
         serializer = UserRegisterSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        self.data['data'] = UserSerializer(user).data
-        self.data['errors'] = []
-        self.statusCode = status.HTTP_201_CREATED
+        if serializer.is_valid(raise_exception=True):
+            req = {'username': request.data['username'], 'password': request.data['password']}
+            user = serializer.save()
+            user.is_active = True
+            user.save()
+            data = MakeToken().create_token(req)
+            user.is_active = False
+            user.save()
+
+            resp = SendEmail().send_simple_message("alberto.zapata.orta@gmail.com", "User Register",
+                                                   f"User register body {data['token']}")
+
+            if resp.status_code == status.HTTP_200_OK:
+                self.data['data'] = UserSerializer(user).data
+                self.data['errors'] = []
+                self.statusCode = status.HTTP_201_CREATED
+            else:
+                user.delete()
+                self.data['errors'] = ["Something happened while sending the user registration email."]
+                self.statusCode = status.HTTP_424_FAILED_DEPENDENCY
 
         return Response(self.data, status=self.statusCode)
 
@@ -135,11 +153,8 @@ class LoginAPIView(TokenObtainPairView):
                 self.data['errors'] = ['Inactive user.']
                 self.statusCode = status.HTTP_403_FORBIDDEN
             else:
-                login = self.serializer_class(data=request.data)
-                if login.is_valid():
-                    decode_token = DecodeToken().decode_token(login.validated_data['access'])
-                    data = {'token': login.validated_data['access'], 'refresh': login.validated_data['refresh'],
-                            'exp': decode_token['exp']}
+                data = MakeToken().create_token(request.data)
+                if data:
                     self.data['data'] = data
                     self.data['errors'].clear()
                     self.statusCode = status.HTTP_200_OK
@@ -182,6 +197,7 @@ class ResetPasswordOfLoggedInUser(generics.UpdateAPIView):
             request.data['user_id'] = decode_token['user_id']
             request.data._mutable = False
         except AttributeError as e:
+            str(e)
             request.data['user_id'] = decode_token['user_id']
 
         user = User.objects.filter(_id=ObjectId(decode_token['user_id'])).first()
@@ -201,3 +217,16 @@ class DecodeToken:
     @staticmethod
     def decode_token(token):
         return jwt.decode(token, settings.SIMPLE_JWT['SIGNING_KEY'], algorithms=[settings.SIMPLE_JWT['ALGORITHM']],)
+
+
+class MakeToken:
+    data = {}
+
+    def create_token(self, request):
+        login = TokenObtainPairSerializer(data=request)
+        if login.is_valid():
+            decode_token = DecodeToken().decode_token(login.validated_data['access'])
+            self.data = {'token': login.validated_data['access'], 'refresh': login.validated_data['refresh'],
+                         'exp': decode_token['exp']}
+
+        return self.data

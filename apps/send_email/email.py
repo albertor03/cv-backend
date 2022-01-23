@@ -12,10 +12,6 @@ class SendEmail:
         self.fromEmail = os.environ['MAILGUN_FROM_EMAIL']
 
     def send_simple_message(self, to: str, subject: str, body: str):
-        return requests.post(
-            f"{self.baseUrl}/{self.mailgunVersion}/{self.mailgunDomain}/message",
-            auth=("api", self.apiKey),
-            data={"from": self.fromEmail,
-                  "to": [to, to],
-                  "subject": subject,
-                  "text": body})
+        url = f"{self.baseUrl}/{self.mailgunVersion}/{self.mailgunDomain}/messages"
+        return requests.post(url, auth=("api", self.apiKey), data={"from": f"App@{self.mailgunDomain}",
+                                                                   "to": [to, to], "subject": subject, "text": body})
