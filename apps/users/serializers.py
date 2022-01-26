@@ -73,3 +73,22 @@ class RestorePasswordSerializer(serializers.ModelSerializer):
         instance.set_password(validated_data['new_password'])
         instance.save()
         return instance
+
+
+class SendActiveLinkUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(required=True, write_only=True)
+
+    class Meta:
+        fields = ['username']
+        model = User
+
+    def validate(self, attrs):
+        user = User.objects.filter(username=attrs['username'])
+
+        if not user.exists():
+            raise serializers.ValidationError({'data': {}, 'errors': ['User not exist.']})
+
+        if user.first().is_active:
+            raise serializers.ValidationError({'data': {}, 'errors': ['The user is already activated.']})
+
+        return user.first()
