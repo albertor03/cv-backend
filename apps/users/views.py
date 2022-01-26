@@ -2,16 +2,16 @@ import jwt
 
 from bson import ObjectId
 
-from django.contrib.auth import authenticate
-from django.urls import reverse_lazy
 from django.utils import timezone
 from django.conf import settings
+from django.contrib.auth import authenticate
 
 from rest_framework import status
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.reverse import reverse
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -21,7 +21,7 @@ from .models import User
 from .serializers import (
     UserRegisterSerializer,
     UserSerializer,
-    RestorePasswordSerializer,
+    RestorePasswordSerializer, SendActiveLinkUserSerializer,
 )
 
 from ..send_email.email import SendEmail
@@ -45,13 +45,13 @@ class SingUpUserApiView(generics.CreateAPIView):
             user.is_active = False
             user.save()
 
-            resp = SendEmail().send_simple_message("alberto.zapata.orta@gmail.com", "User Register",
-                                                   f"User register body "
-                                                   f"{reverse_lazy('active_user', kwargs={'pk': data['token']})}")
+            url = reverse('active_user', kwargs={'pk': data['token']}, request=request)
+
+            resp = SendEmail().send_simple_message(user.email, "User Register", f"User register body {url}")
 
             if resp.status_code == status.HTTP_200_OK:
                 self.data['data'] = UserSerializer(user).data
-                self.data['errors'] = []
+                self.data['errors'].clear()
                 self.statusCode = status.HTTP_201_CREATED
             else:
                 user.delete()
@@ -234,6 +234,34 @@ class ActiveUserAPIView(APIView):
                 self.data['data'] = 'User active successfully.'
                 self.data['errors'].clear()
                 self.statusCode = status.HTTP_200_OK
+
+        return Response(self.data, status=self.statusCode)
+
+
+class SendActivateLinkAPIView(generics.CreateAPIView):
+    serializer_class = SendActiveLinkUserSerializer
+    data = {'data': str(), 'errors': ['Bad request.']}
+    statusCode = status.HTTP_400_BAD_REQUEST
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user = serializer.validated_data
+            user.is_active = False
+            user.save()
+            data = RefreshToken.for_user(user).access_token
+            user.is_active = False
+            user.save()
+            url = reverse('active_user', kwargs={'pk': data}, request=request)
+            resp = SendEmail().send_simple_message(user.email, "User activation", f"User register body {url}")
+
+            if resp.status_code == status.HTTP_200_OK:
+                self.data['data'] = 'User activation link sent successfully.'
+                self.data['errors'].clear()
+                self.statusCode = status.HTTP_200_OK
+            else:
+                self.data['errors'] = ["Something happened while sending the user activate email."]
+                self.statusCode = status.HTTP_424_FAILED_DEPENDENCY
 
         return Response(self.data, status=self.statusCode)
 
