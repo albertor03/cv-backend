@@ -92,3 +92,22 @@ class SendActiveLinkUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'data': {}, 'errors': ['The user is already activated.']})
 
         return user.first()
+
+
+class SendResetPwdLinkUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(required=True, write_only=True)
+
+    class Meta:
+        fields = ['username']
+        model = User
+
+    def validate(self, attrs):
+        user = User.objects.filter(username=attrs['username'])
+
+        if not user.exists():
+            raise serializers.ValidationError({'data': {}, 'errors': ['User not exist.']})
+
+        if not user.first().is_active:
+            raise serializers.ValidationError({'data': {}, 'errors': ['The user is not activated.']})
+
+        return user.first()
