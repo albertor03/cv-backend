@@ -1,6 +1,7 @@
 import jwt
 
 from bson import ObjectId
+from chance import chance
 
 from django.utils import timezone
 from django.conf import settings
@@ -21,7 +22,7 @@ from .models import User
 from .serializers import (
     UserRegisterSerializer,
     UserSerializer,
-    RestorePasswordSerializer, SendActiveLinkUserSerializer,
+    RestorePasswordSerializer, SendActiveLinkUserSerializer, SendResetPwdLinkUserSerializer,
 )
 
 from ..send_email.email import SendEmail
@@ -257,6 +258,36 @@ class SendActivateLinkAPIView(generics.CreateAPIView):
 
             if resp.status_code == status.HTTP_200_OK:
                 self.data['data'] = 'User activation link sent successfully.'
+                self.data['errors'].clear()
+                self.statusCode = status.HTTP_200_OK
+            else:
+                self.data['errors'] = ["Something happened while sending the user activate email."]
+                self.statusCode = status.HTTP_424_FAILED_DEPENDENCY
+
+        return Response(self.data, status=self.statusCode)
+
+
+class SendResetPasswordLinkAPIView(generics.CreateAPIView):
+    serializer_class = SendResetPwdLinkUserSerializer
+    data = {'data': str(), 'errors': ['Bad request.']}
+    statusCode = status.HTTP_400_BAD_REQUEST
+
+    def patch(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            new_pwd = chance.string(length=8)
+            user = serializer.validated_data
+            user.set_password(new_pwd)
+            user.save()
+            data = RefreshToken.for_user(user).access_token
+            url = reverse('reset_password_of_user_logged', request=request)
+            resp = SendEmail().send_simple_message(user.email, "Reset password", f"The password was changed, "
+                                                                                 f"please enter in the url {url} with "
+                                                                                 f"the new password {new_pwd} to "
+                                                                                 f"change your password. JWT {data} ")
+
+            if resp.status_code == status.HTTP_200_OK:
+                self.data['data'] = 'Reset password link sent successfully.'
                 self.data['errors'].clear()
                 self.statusCode = status.HTTP_200_OK
             else:
