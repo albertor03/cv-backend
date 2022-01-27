@@ -23,4 +23,4 @@ urlpatterns = [
     path('api/users/', include('apps.users.urls')),
     path('api/personal-info/', include('apps.information.urls')),
     path('api/jobs/', include('apps.job.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.STATIC_URL, document_root=settings.STATIC_URL)
