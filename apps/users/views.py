@@ -216,27 +216,27 @@ class ResetPasswordOfLoggedInUserAPIView(generics.UpdateAPIView):
 
 
 class ActiveUserAPIView(APIView):
-    data = {'data': str(), 'errors': ['Bad request.']}
-    statusCode = status.HTTP_400_BAD_REQUEST
     permission_classes = [AllowAny]
 
     def patch(self, request, pk=None, *args, **kwargs):
         decode_token = DecodeToken().decode_token(pk)
+        data = {'data': str(), 'errors': ['Bad request.']}
+        status_code = status.HTTP_400_BAD_REQUEST
 
         user = User.objects.filter(_id=ObjectId(decode_token['user_id']))
         if user.exists():
             if user.first().is_active:
-                self.data['data'] = ""
-                self.data['errors'] = ['The user is already activated.']
+                data['data'] = ""
+                data['errors'] = ['The user is already activated.']
             else:
                 user = user.first()
                 user.is_active = True
                 user.save()
-                self.data['data'] = 'User active successfully.'
-                self.data['errors'].clear()
-                self.statusCode = status.HTTP_200_OK
+                data['data'] = 'User active successfully.'
+                data['errors'].clear()
+                status_code = status.HTTP_200_OK
 
-        return Response(self.data, status=self.statusCode)
+        return Response(data, status=status_code)
 
 
 class SendActivateLinkAPIView(generics.CreateAPIView):
