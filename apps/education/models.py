@@ -1,5 +1,7 @@
 from djongo import models
 
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
+
 
 class EducationModels(models.Model):
 
@@ -9,7 +11,7 @@ class EducationModels(models.Model):
     start_date = models.DateField('Start date')
     end_date = models.DateField('End date', null=True, blank=True)
     currently = models.BooleanField('Currently', default=False)
-    certificate = models.FileField(upload_to='education', null=True, blank=True)
+    certificate = models.FileField(upload_to='education', null=True, blank=True, storage=RawMediaCloudinaryStorage())
     created_at = models.DateTimeField('Created at', auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField('Updated at', auto_now=True, auto_now_add=False)
 
