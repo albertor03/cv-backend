@@ -13,8 +13,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-import mimetypes
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -39,6 +37,7 @@ LOCAL_APPS = [
     'apps.users.apps.UserConfig',
     'apps.information.apps.InformationConfig',
     'apps.job.apps.JobConfig',
+    'apps.education.apps.EducationConfig',
 ]
 
 THIRD_APPS = [
@@ -163,6 +162,3 @@ SWAGGER_SETTINGS = {
          }
       }
    }
-
-mimetypes.add_type("text/css", ".css", True)
-mimetypes.add_type("text/html", ".css", True)
