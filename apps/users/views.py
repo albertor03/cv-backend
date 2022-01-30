@@ -187,7 +187,7 @@ class LogoutAPIView(APIView):
         return Response(self.data, status=self.statusCode)
 
 
-class ResetPasswordOfLoggedInUserAPIView(generics.UpdateAPIView):
+class ResetPasswordOfLoggedInUserAPIView(generics.GenericAPIView):
     serializer_class = RestorePasswordSerializer
     data = {'data': '', 'errors': ['Invalid request.']}
     statusCode = status.HTTP_400_BAD_REQUEST
@@ -267,7 +267,7 @@ class SendActivateLinkAPIView(generics.CreateAPIView):
         return Response(self.data, status=self.statusCode)
 
 
-class SendResetPasswordLinkAPIView(generics.CreateAPIView):
+class SendResetPasswordLinkAPIView(generics.GenericAPIView):
     serializer_class = SendResetPwdLinkUserSerializer
     data = {'data': str(), 'errors': ['Bad request.']}
     statusCode = status.HTTP_400_BAD_REQUEST
