@@ -10,6 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
+
+import cloudinary_storage
+
 from datetime import timedelta
 from pathlib import Path
 
@@ -44,6 +47,8 @@ THIRD_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_yasg',
+    'cloudinary_storage',
+    'cloudinary',
 ]
 
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS + THIRD_APPS
@@ -169,4 +174,9 @@ STATIC_URL = '/static/'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-print(MEDIA_ROOT)
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ['CLOUD_NAME'],
+    'API_KEY': os.environ['API_KEY'],
+    'API_SECRET': os.environ['API_SECRET']
+}
