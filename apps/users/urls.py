@@ -1,7 +1,5 @@
 from django.urls import path
 
-from rest_framework.urlpatterns import format_suffix_patterns
-
 from .views import (
     SingUpUserApiView,
     DetailUserApiView,
@@ -29,5 +27,3 @@ urlpatterns = [
     path('send-active-user-link/', SendActivateLinkAPIView.as_view(), name='send-activate-user-link'),
     path('send-reset-password-link/', SendResetPasswordLinkAPIView.as_view(), name='send-reset-password-link'),
 ]
-
-urlpatterns = format_suffix_patterns(urlpatterns)

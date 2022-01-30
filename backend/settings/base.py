@@ -42,6 +42,7 @@ LOCAL_APPS = [
 THIRD_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
+    'drf_yasg',
 ]
 
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS + THIRD_APPS
@@ -149,3 +150,14 @@ SIMPLE_JWT = {
 }
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.AllowAllUsersModelBackend']
+
+SWAGGER_SETTINGS = {
+      'SECURITY_DEFINITIONS': {
+         'DRF Token': {
+               'type': 'apiKey',
+               'name': 'Authorization',
+               'in': 'header'
+         }
+      }
+   }
+
