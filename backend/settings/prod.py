@@ -12,10 +12,10 @@ ROOT_URLCONF = environment
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 MEDIA_URL = f"{BASE_DIR.parent}/media/"
-MEDIA_ROOT = BASE_DIR.parent / 'media'
+MEDIA_ROOT = BASE_DIR.parent / 'media/'
 
 DATABASES = {
   'default': {
