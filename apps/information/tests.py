@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
-from ..tests_folder.set_up import TestInformationSetUp, Faker, LoginUser
+from ..tests_folder.set_up import TestInformationSetUp, LoginUser, chance
 
 
 class UserRegistrationTestCasesUser(TestInformationSetUp):
@@ -22,7 +22,7 @@ class UserRegistrationTestCasesUser(TestInformationSetUp):
     def test_03_register_an_information_without_required_fields(self):
         data = {
             "phone": "123456789",
-            "address": Faker().address()
+            "address": chance.street()
         }
         resp = self.client.post(reverse('info'), data)
         first = ErrorDetail(resp.data['first_name'][0]).title()
@@ -47,14 +47,13 @@ class UserListTestCasesUser(LoginUser):
         self.assertFalse(resp.data)
 
     def test_02_list_information(self):
-        name = str(Faker().name())
         data = {
-            "first_name": name.split(' ')[0],
-            "last_name": name.split(' ')[1],
-            "email": f"{name.lower().replace(' ', '')}@mailinator.com",
+            "first_name": chance.first(),
+            "last_name": chance.last(),
+            "email": chance.email(),
             "profession": "Professional Testing",
             "phone": "123456789",
-            "address": Faker().address()
+            "address": chance.street()
         }
         self.client.post(reverse('info'), data)
         resp = self.client.get(reverse('info'))

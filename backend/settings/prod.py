@@ -10,12 +10,12 @@ ROOT_URLCONF = environment
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
-
-STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = '/static/'
+
 
 MEDIA_URL = f"{BASE_DIR.parent}/media/"
-MEDIA_ROOT = BASE_DIR.parent / 'media'
+MEDIA_ROOT = BASE_DIR.parent / 'media/'
 
 DATABASES = {
   'default': {
@@ -30,3 +30,5 @@ DATABASES = {
 
 SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'] = timedelta(minutes=int(os.environ['TIMEOUT_TOKEN']))
 SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'] = timedelta(minutes=int(os.environ['TIMEOUT_REFRESH_TOKEN']))
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
