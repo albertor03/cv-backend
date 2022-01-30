@@ -22,7 +22,7 @@ from .models import User
 from .serializers import (
     UserRegisterSerializer,
     UserSerializer,
-    RestorePasswordSerializer, SendActiveLinkUserSerializer, SendResetPwdLinkUserSerializer,
+    RestorePasswordSerializer, SendActiveLinkUserSerializer, SendResetPwdLinkUserSerializer, UserDetailSerializer,
 )
 
 from ..send_email.email import SendEmail
@@ -78,8 +78,8 @@ class AllUserApiView(generics.ListAPIView):
         return Response(self.data, status=self.statusCode)
 
 
-class DetailUserApiView(APIView):
-    serializer_class = UserSerializer
+class DetailUserApiView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = UserDetailSerializer
     data = {}
     error = []
     statusCode = status.HTTP_200_OK
@@ -88,7 +88,7 @@ class DetailUserApiView(APIView):
     def get_object(pk=None):
         return User.objects.filter(_id=ObjectId(pk)).first()
 
-    def get(self, request, pk=None):
+    def get(self, request, pk=None, **kwargs):
         user = self.get_object(pk)
         user_data = {}
         self.error = ['User not found.']
@@ -105,7 +105,7 @@ class DetailUserApiView(APIView):
 
         return Response(self.data, status=self.statusCode)
 
-    def put(self, request, pk):
+    def put(self, request, pk=None, **kwargs):
         user = self.get_object(pk)
         self.error = ['User not found.']
         if user:
@@ -117,7 +117,7 @@ class DetailUserApiView(APIView):
 
         return Response(self.data, status=self.statusCode)
 
-    def patch(self, request, pk):
+    def patch(self, request, pk=None, **kwargs):
         user = self.get_object(pk)
         self.error = ['User not found.']
         if user:
@@ -129,7 +129,7 @@ class DetailUserApiView(APIView):
 
         return Response(self.data, status=self.statusCode)
 
-    def delete(self, request, pk):
+    def delete(self, request, pk=None, **kwargs):
         user = self.get_object(pk)
         if user:
             user.delete()

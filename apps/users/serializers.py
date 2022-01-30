@@ -19,6 +19,16 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
 
+class UserDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            '_id', 'username', 'first_name', 'last_name',
+            'email', 'is_active', 'is_staff', 'is_superuser'
+        ]
+
+
 class UserRegisterSerializer(serializers.ModelSerializer):
 
     confirm_password = serializers.CharField()
