@@ -8,13 +8,6 @@ ALLOWED_HOSTS = ['*']
 environment = f"backend.routes.{os.environ['ENV']}"
 ROOT_URLCONF = environment
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_URL = '/static/'
-
-
-MEDIA_URL = f"{BASE_DIR.parent}/media/"
-MEDIA_ROOT = BASE_DIR.parent / 'media/'
-
 DATABASES = {
   'default': {
       'ENGINE': 'djongo',
