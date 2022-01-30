@@ -12,7 +12,7 @@ from .serializers import (
 )
 
 
-class ListCreateJobAPIView(APIView):
+class ListCreateJobAPIView(generics.ListCreateAPIView):
     serializer_class = CreateJobSerializer
     data = {'data': {}, 'errors': ['Bad request.']}
     statusCode = status.HTTP_400_BAD_REQUEST
