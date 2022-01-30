@@ -25,7 +25,7 @@ urlpatterns = [
     path('detail/<str:pk>/', DetailUserApiView.as_view(), name='user_detail'),
 
     path('reset-passoword/', ResetPasswordOfLoggedInUserAPIView.as_view(), name='reset_password_of_user_logged'),
-    path('active-user/<str:pk>', ActiveUserAPIView.as_view(), name='active_user'),
+    path('active-user/<str:token>', ActiveUserAPIView.as_view(), name='active_user'),
     path('send-active-user-link/', SendActivateLinkAPIView.as_view(), name='send-activate-user-link'),
     path('send-reset-password-link/', SendResetPasswordLinkAPIView.as_view(), name='send-reset-password-link'),
 ]
