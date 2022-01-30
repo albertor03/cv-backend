@@ -12,12 +12,13 @@ from .serializers import (
 
 class ListCreateEducationAPIView(generics.ListCreateAPIView):
     serializer_class = CreateEducationSerializer
+    list_serializer_class = EducationSerializer
     statusCode = status.HTTP_400_BAD_REQUEST
 
     def get(self, request, **kwargs):
         data = {'data': {}, 'errors': []}
         education = self.get_serializer().Meta.model.objects.all()
-        education_serializer = EducationSerializer(education, many=True)
+        education_serializer = self.list_serializer_class(education, many=True, context={'request': request})
 
         data['data'] = education_serializer.data
         data['errors'].clear()
@@ -30,8 +31,8 @@ class ListCreateEducationAPIView(generics.ListCreateAPIView):
 
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            data['data'] = serializer.data
+            education = serializer.save()
+            data['data'] = self.list_serializer_class(education, context={'request': request}).data
             data['errors'].clear()
             self.statusCode = status.HTTP_201_CREATED
 
@@ -52,7 +53,7 @@ class RetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
         self.statusCode = status.HTTP_404_NOT_FOUND
 
         if info:
-            info_serializer = self.list_serializer_class(info)
+            info_serializer = self.list_serializer_class(info, context={'request': request})
             data["data"] = info_serializer.data
             data["errors"].clear()
             self.statusCode = status.HTTP_200_OK
@@ -65,7 +66,7 @@ class RetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
         self.statusCode = status.HTTP_404_NOT_FOUND
 
         if info:
-            serializer = self.list_serializer_class(info, data=request.data)
+            serializer = self.list_serializer_class(info, data=request.data, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
                 data["data"] = serializer.data
@@ -78,7 +79,7 @@ class RetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
         user = self.get_object(pk)
         data = {'data': {}, 'errors': ['Information not found.']}
         if user:
-            serializer = self.list_serializer_class(user, request.data, partial=True)
+            serializer = self.list_serializer_class(user, request.data, partial=True, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
                 data["data"] = serializer.data
