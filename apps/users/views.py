@@ -63,19 +63,19 @@ class SingUpUserApiView(generics.CreateAPIView):
 
 
 class AllUserApiView(generics.ListAPIView):
-    data = {}
-    error = []
+    serializer_class = UserSerializer
     statusCode = status.HTTP_200_OK
 
     def get(self, request, **kwargs):
+        data = {'data': {}, 'errors': []}
         user = User.objects.all()
-        users_serializer = UserSerializer(user, many=True)
+        users_serializer = self.serializer_class(user, many=True)
 
-        self.data['data'] = users_serializer.data
-        self.data['errors'] = self.error
-        self.data['total_user'] = len(users_serializer.data)
+        data['data'] = users_serializer.data
+        data['errors'].clear()
+        data['total_user'] = len(users_serializer.data)
 
-        return Response(self.data, status=self.statusCode)
+        return Response(data, status=self.statusCode)
 
 
 class DetailUserApiView(generics.RetrieveUpdateDestroyAPIView):
