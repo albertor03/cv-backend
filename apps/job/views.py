@@ -39,34 +39,36 @@ class ListCreateJobAPIView(generics.ListCreateAPIView):
 
 
 class RetrieveUpdateDestroyJobAPIView(generics.RetrieveUpdateDestroyAPIView):
+
+    def get_queryset(self):
+        queryset = JobModels.objects.filter(_id=ObjectId(self.kwargs['pk'])).first()
+        return queryset
+
     serializer_class = CreateJobSerializer
+    list_serializer_class = ListJobSerializer
     data = {'data': {}, 'errors': []}
     statusCode = status.HTTP_400_BAD_REQUEST
 
-    @staticmethod
-    def get_object(pk=None):
-        return JobModels.objects.filter(_id=ObjectId(pk)).first()
-
-    def get(self, request, pk=None, **kwargs):
-        info = self.get_object(pk)
+    def get(self, request, **kwargs):
+        info = self.get_queryset()
         self.data = {'data': {}, 'errors': ['Job not found.']}
         self.statusCode = status.HTTP_404_NOT_FOUND
 
         if info:
-            info_serializer = ListJobSerializer(info)
+            info_serializer = self.list_serializer_class(info)
             self.data["data"] = info_serializer.data
             self.data["errors"] = []
             self.statusCode = status.HTTP_200_OK
 
         return Response(self.data, status=self.statusCode)
 
-    def put(self, request, pk=None, **kwargs):
-        info = self.get_object(pk)
+    def put(self, request, **kwargs):
+        info = self.get_queryset()
         self.data = {'data': {}, 'errors': ['Information not found.']}
         self.statusCode = status.HTTP_404_NOT_FOUND
 
         if info:
-            serializer = ListJobSerializer(info, data=request.data)
+            serializer = self.list_serializer_class(info, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 self.data["data"] = serializer.data
@@ -75,11 +77,11 @@ class RetrieveUpdateDestroyJobAPIView(generics.RetrieveUpdateDestroyAPIView):
 
         return Response(self.data, status=self.statusCode)
 
-    def patch(self, request, pk=None, **kwargs):
-        user = self.get_object(pk)
+    def patch(self, request, **kwargs):
+        user = self.get_queryset()
         self.data = {'data': {}, 'errors': ['Information not found.']}
         if user:
-            serializer = ListJobSerializer(user, request.data, partial=True)
+            serializer = self.list_serializer_class(user, request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 self.data["data"] = serializer.data
@@ -88,8 +90,8 @@ class RetrieveUpdateDestroyJobAPIView(generics.RetrieveUpdateDestroyAPIView):
 
         return Response(self.data, status=self.statusCode)
 
-    def delete(self, request, pk=None, **kwargs):
-        user = self.get_object(pk)
+    def delete(self, request, **kwargs):
+        user = self.get_queryset()
         self.data = {'data': {}, 'errors': ['Information not found.']}
         self.statusCode = status.HTTP_404_NOT_FOUND
         if user:
