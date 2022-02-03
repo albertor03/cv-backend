@@ -6,7 +6,8 @@ from rest_framework.response import Response
 
 from .serializers import (
     EducationSerializer,
-    CreateEducationSerializer
+    CreateEducationSerializer,
+    EducationModels
 )
 
 
@@ -40,33 +41,35 @@ class ListCreateEducationAPIView(generics.ListCreateAPIView):
 
 
 class RetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+
+    def get_queryset(self):
+        queryset = EducationModels.objects.filter(_id=ObjectId(self.kwargs["pk"])).first()
+        return queryset
+
     serializer_class = CreateEducationSerializer
     list_serializer_class = EducationSerializer
     statusCode = status.HTTP_400_BAD_REQUEST
 
-    def get_object(self, pk=None):
-        return self.get_serializer().Meta.model.objects.filter(_id=ObjectId(pk)).first()
-
-    def get(self, request, pk=None, **kwargs):
-        info = self.get_object(pk)
+    def get(self, request, **kwargs):
+        education = self.get_queryset()
         data = {'data': {}, 'errors': ['Information not found.']}
         self.statusCode = status.HTTP_404_NOT_FOUND
 
-        if info:
-            info_serializer = self.list_serializer_class(info, context={'request': request})
-            data["data"] = info_serializer.data
+        if education:
+            education_serializer = self.list_serializer_class(education, context={'request': request})
+            data["data"] = education_serializer.data
             data["errors"].clear()
             self.statusCode = status.HTTP_200_OK
 
         return Response(data, status=self.statusCode)
 
-    def put(self, request, pk=None, **kwargs):
-        info = self.get_object(pk)
+    def put(self, request, **kwargs):
+        education = self.get_queryset()
         data = {'data': {}, 'errors': ['Information not found.']}
         self.statusCode = status.HTTP_404_NOT_FOUND
 
-        if info:
-            serializer = self.list_serializer_class(info, data=request.data, context={'request': request})
+        if education:
+            serializer = self.list_serializer_class(education, data=request.data, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
                 data["data"] = serializer.data
@@ -75,11 +78,11 @@ class RetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
         return Response(data, status=self.statusCode)
 
-    def patch(self, request, pk=None, **kwargs):
-        user = self.get_object(pk)
+    def patch(self, request, **kwargs):
+        education = self.get_queryset()
         data = {'data': {}, 'errors': ['Information not found.']}
-        if user:
-            serializer = self.list_serializer_class(user, request.data, partial=True, context={'request': request})
+        if education:
+            serializer = self.list_serializer_class(education, request.data, partial=True, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
                 data["data"] = serializer.data
@@ -88,12 +91,12 @@ class RetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
         return Response(data, status=self.statusCode)
 
-    def delete(self, request, pk=None, **kwargs):
-        user = self.get_object(pk)
+    def delete(self, request, **kwargs):
+        education = self.get_queryset()
         data = {'data': {}, 'errors': ['Information not found.']}
         self.statusCode = status.HTTP_404_NOT_FOUND
-        if user:
-            user.delete()
+        if education:
+            education.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(data, status=self.statusCode)
