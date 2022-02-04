@@ -11,8 +11,6 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
 
-import cloudinary_storage
-
 from datetime import timedelta
 from pathlib import Path
 
@@ -41,6 +39,7 @@ LOCAL_APPS = [
     'apps.information.apps.InformationConfig',
     'apps.job.apps.JobConfig',
     'apps.education.apps.EducationConfig',
+    'apps.course.apps.CourseConfig',
 ]
 
 THIRD_APPS = [
