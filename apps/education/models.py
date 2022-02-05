@@ -24,5 +24,6 @@ class EducationModels(models.Model):
         return f"{self.degree} in {self.collage}"
 
     def delete(self, using=None, keep_parents=False):
-        self.certificate.storage.delete(self.certificate.name)
+        if self.certificate.name:
+            self.certificate.storage.delete(self.certificate.name)
         super().delete()
