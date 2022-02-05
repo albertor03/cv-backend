@@ -1,3 +1,4 @@
+from bson import ObjectId
 from djongo import models
 
 from cloudinary_storage.storage import RawMediaCloudinaryStorage
@@ -22,7 +23,23 @@ class CoursesModel(models.Model):
         return f"{self.name} in {self.company}"
 
     def delete(self, using=None, keep_parents=False):
-        self.certificate.storage.delete(self.certificate.name)
+        new_courses = list()
+        section_id_to_update = str()
+        if self.certificate.name:
+            self.certificate.storage.delete(self.certificate.name)
+
+        if using is None:
+            sections = CourseSectionsModel.objects.all()
+            for section in sections:
+                for course in section.courses:
+                    if course['_id'] != self._id:
+                        new_courses.append(course)
+                        section_id_to_update = section.pk
+
+            section_to_update = CourseSectionsModel.objects.filter(_id=ObjectId(section_id_to_update)).first()
+            section_to_update.courses = new_courses
+            section_to_update.save()
+
         super().delete()
 
 
@@ -34,7 +51,7 @@ class CourseSectionsModel(models.Model):
     created_at = models.DateTimeField('Created at', auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField('Updated at', auto_now=True, auto_now_add=False)
 
-    object = models.DjongoManager()
+    objects = models.DjongoManager()
 
     class Meta:
         verbose_name = 'Course Section'
@@ -43,3 +60,9 @@ class CourseSectionsModel(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+    def delete(self, using=None, keep_parents=False):
+        for course in self.courses:
+            CoursesModel.objects.filter(_id=ObjectId(course['_id'])).first().delete(True)
+
+        super().delete()
