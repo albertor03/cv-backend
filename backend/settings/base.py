@@ -10,10 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
+
 from datetime import timedelta
 from pathlib import Path
-
-import mimetypes
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,12 +38,17 @@ LOCAL_APPS = [
     'apps.users.apps.UserConfig',
     'apps.information.apps.InformationConfig',
     'apps.job.apps.JobConfig',
+    'apps.education.apps.EducationConfig',
+    'apps.course.apps.CourseConfig',
+    'apps.skill.apps.SkillConfig'
 ]
 
 THIRD_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_yasg',
+    'cloudinary_storage',
+    'cloudinary',
 ]
 
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS + THIRD_APPS
@@ -164,5 +168,15 @@ SWAGGER_SETTINGS = {
       }
    }
 
-mimetypes.add_type("text/css", ".css", True)
-mimetypes.add_type("text/html", ".css", True)
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = '/static/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ['CLOUDINARY_NAME'],
+    'API_KEY': os.environ['CLOUDINARY_API_KEY'],
+    'API_SECRET': os.environ['CLOUDINARY_API_SECRET']
+}

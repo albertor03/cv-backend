@@ -2,3 +2,5 @@
 __pycache__/
 backend/routes/local.py
 backend/settings/local.py
+backend/media/*
+.idea/
