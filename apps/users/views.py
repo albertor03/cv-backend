@@ -46,7 +46,7 @@ class SingUpUserApiView(generics.CreateAPIView):
             user.is_active = False
             user.save()
 
-            url = reverse('active_user', kwargs={'pk': data['token']}, request=request)
+            url = reverse('active_user', kwargs={'token': data['token']}, request=request)
 
             resp = SendEmail().send_simple_message(user.email, "User Register", f"User register body {url}")
 
@@ -253,7 +253,7 @@ class SendActivateLinkAPIView(generics.CreateAPIView):
             data = RefreshToken.for_user(user).access_token
             user.is_active = False
             user.save()
-            url = reverse('active_user', kwargs={'pk': data}, request=request)
+            url = reverse('active_user', kwargs={'token': data}, request=request)
             resp = SendEmail().send_simple_message(user.email, "User activation", f"User register body {url}")
 
             if resp.status_code == status.HTTP_200_OK:

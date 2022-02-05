@@ -1,4 +1,5 @@
 from datetime import datetime
+import random
 
 from bson import ObjectId
 from chance import chance
@@ -18,7 +19,7 @@ def generate_user():
         "username": f"{name}{last}",
         "first_name": name,
         "last_name": last,
-        "email": f"{name}{last}@mailinator.com",
+        "email": "alberto.zapata.orta@gmail.com",
         "password": pwd,
         "confirm_password": pwd
     }
@@ -45,6 +46,13 @@ def generate_data():
         "profession": "Professional Testing",
         "phone": chance.phone(),
         "address": chance.city()
+    }
+
+
+def generate_skill():
+    return {
+        "name": f"{chance.name()} Skill",
+        "percentage": random.uniform(0.0, 100.00)
     }
 
 

@@ -40,6 +40,7 @@ LOCAL_APPS = [
     'apps.job.apps.JobConfig',
     'apps.education.apps.EducationConfig',
     'apps.course.apps.CourseConfig',
+    'apps.skill.apps.SkillConfig'
 ]
 
 THIRD_APPS = [
