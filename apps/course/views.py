@@ -160,11 +160,9 @@ class RetrieveUpdateDestroyCourseAPIView(generics.RetrieveUpdateDestroyAPIView):
             serializer = self.path_serializer_class(data, request.data, partial=True, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
-                self.data["data"].clear()
-                self.data["errors"].clear()
-                self.statusCode = status.HTTP_200_OK
+                self.statusCode = status.HTTP_204_NO_CONTENT
 
-        return Response(self.data, status=self.statusCode)
+        return Response(status=self.statusCode)
 
     def delete(self, request, **kwargs):
         data = self.get_queryset()

@@ -75,7 +75,7 @@ class UpdateCourseSerializer(serializers.ModelSerializer):
 
         CoursesModel.objects.filter(_id=ObjectId(instance.pk)).update(**validated_data)
 
-        return instance
+        return CoursesModel.objects.filter(_id=ObjectId(instance.pk)).first()
 
 
 class CourseSectionSerializer(serializers.ModelSerializer):
