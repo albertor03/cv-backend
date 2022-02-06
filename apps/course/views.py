@@ -24,6 +24,10 @@ class ListCreateCourseSectionAPIView(generics.ListCreateAPIView):
             self.data['data'] = serializer.data
             self.data['errors'].clear()
             self.statusCode = status.HTTP_200_OK
+        else:
+            self.data['data'].clear()
+            self.data['errors'].clear()
+            self.statusCode = status.HTTP_200_OK
 
         return Response(self.data, self.statusCode)
 
@@ -95,14 +99,15 @@ class RetrieveUpdateDestroyCourseSectionAPIView(generics.RetrieveUpdateDestroyAP
 
 class ListCreateCourseAPIView(generics.ListCreateAPIView):
     serializer_class = CreateCourseSerializer
+    list_serializer_class = ListCourseSerializer
     data = {'data': {}, 'errors': ['Information not found.']}
     statusCode = status.HTTP_400_BAD_REQUEST
 
     def get(self, request, *args, **kwargs):
-        data = self.get_serializer().Meta.model.objects.all()
+        data = self.list_serializer_class().Meta.model.objects.all()
         self.statusCode = status.HTTP_200_OK
         if data:
-            serializer = self.serializer_class(data, many=True)
+            serializer = self.list_serializer_class(data, many=True)
             self.data['data'] = serializer.data
             self.data['errors'].clear()
         else:
@@ -116,7 +121,7 @@ class ListCreateCourseAPIView(generics.ListCreateAPIView):
         if serializer.is_valid(raise_exception=True):
             course = serializer.save()
 
-            self.data['data'] = ListCourseSerializer(course).data
+            self.data['data'] = self.list_serializer_class(course).data
             self.data['errors'].clear()
             self.statusCode = status.HTTP_201_CREATED
 
@@ -125,6 +130,7 @@ class ListCreateCourseAPIView(generics.ListCreateAPIView):
 
 class RetrieveUpdateDestroyCourseAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CreateCourseSerializer
+    list_serializer_class = ListCourseSerializer
     data = {'data': {}, 'errors': ['Information not found.']}
     statusCode = status.HTTP_400_BAD_REQUEST
 
@@ -135,7 +141,7 @@ class RetrieveUpdateDestroyCourseAPIView(generics.RetrieveUpdateDestroyAPIView):
     def get(self, request, *args, **kwargs):
         data = self.get_queryset()
         if data:
-            serializer = self.serializer_class(data, context={'request': request})
+            serializer = self.list_serializer_class(data, context={'request': request})
             self.data["data"] = serializer.data
             self.data["errors"].clear()
             self.statusCode = status.HTTP_200_OK
