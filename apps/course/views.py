@@ -151,9 +151,10 @@ class RetrieveUpdateDestroyCourseAPIView(generics.RetrieveUpdateDestroyAPIView):
     def put(self, request, *args, **kwargs):
         data = self.get_queryset()
         self.statusCode = status.HTTP_404_NOT_FOUND
+        print(data)
         if data:
-            serializer = self.serializer_class(data, data=request.data, context={'request': request})
-            if serializer.is_valid():
+            serializer = self.list_serializer_class(data, data=request.data, context={'request': request})
+            if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 self.data["data"] = serializer.data
                 self.data["errors"].clear()
@@ -165,7 +166,7 @@ class RetrieveUpdateDestroyCourseAPIView(generics.RetrieveUpdateDestroyAPIView):
         data = self.get_queryset()
         if data:
             serializer = self.serializer_class(data, request.data, partial=True, context={'request': request})
-            if serializer.is_valid():
+            if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 self.data["data"] = serializer.data
                 self.data["errors"].clear()
