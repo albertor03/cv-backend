@@ -54,13 +54,12 @@ class UpdateCourseSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def update(self, instance, validated_data):
-        course_position = 0
-
         validated_data['_id'] = ObjectId(instance.pk)
         validated_data['updated_at'] = datetime.now()
 
         sections = CourseSectionsModel.objects.all()
         for section in sections:
+            course_position = 0
             for course in section.courses:
                 if course['_id'] == instance.pk:
                     validated_data['created_at'] = course['created_at']
@@ -117,6 +116,22 @@ class PatchCourseSerializer(serializers.ModelSerializer):
         fields = ('course_section_id',)
 
     def update(self, instance, validated_data):
-        print(instance.pk, validated_data)
+        sections = CourseSectionsModel.objects.all()
+        for section in sections:
+            course_position = 0
+            for course in section.courses:
+                if course['_id'] == instance.pk:
+                    course_to_change = section.courses[course_position]
+                    section.courses.pop(course_position)
+                    old_courses = CourseSectionsModel.objects.filter(_id=ObjectId(section.pk)).first()
+                    old_courses.courses = section.courses
+                    old_courses.save()
+
+                    new_courses = CourseSectionsModel.objects.filter(
+                        _id=ObjectId(validated_data['course_section_id'])).first()
+                    new_courses.courses.append(course_to_change)
+                    new_courses.save()
+
+                course_position += 1
 
         return instance
