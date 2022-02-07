@@ -161,8 +161,11 @@ class RetrieveUpdateDestroyCourseAPIView(generics.RetrieveUpdateDestroyAPIView):
             if serializer.is_valid():
                 serializer.save()
                 self.statusCode = status.HTTP_204_NO_CONTENT
+                return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            self.data = {'data': {}, 'errors': ['Information not found.']}
 
-        return Response(status=self.statusCode)
+        return Response(self.data, status=self.statusCode)
 
     def delete(self, request, **kwargs):
         data = self.get_queryset()
@@ -170,5 +173,7 @@ class RetrieveUpdateDestroyCourseAPIView(generics.RetrieveUpdateDestroyAPIView):
         if data:
             data.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            self.data = {'data': {}, 'errors': ['Information not found.']}
 
         return Response(self.data, status=self.statusCode)

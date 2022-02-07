@@ -121,7 +121,7 @@ class PatchCourseSerializer(serializers.ModelSerializer):
             course_position = 0
             for course in section.courses:
                 if course['_id'] == instance.pk:
-                    course_to_change = section.courses[course_position]
+                    course_to_change = course
                     section.courses.pop(course_position)
                     old_courses = CourseSectionsModel.objects.filter(_id=ObjectId(section.pk)).first()
                     old_courses.courses = section.courses
