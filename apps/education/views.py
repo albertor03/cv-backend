@@ -23,7 +23,7 @@ class ListCreateEducationAPIView(generics.ListCreateAPIView):
 
         data['data'] = education_serializer.data
         data['errors'].clear()
-        data['total_user'] = len(education_serializer.data)
+        data['total_education'] = len(education_serializer.data)
         self.statusCode = status.HTTP_200_OK
         return Response(data, status=self.statusCode)
 
