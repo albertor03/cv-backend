@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from bson import ObjectId
 
 from .models import CourseSectionsModel, CoursesModel
@@ -45,6 +47,37 @@ class CreateCourseSerializer(serializers.ModelSerializer):
         return course
 
 
+class UpdateCourseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CoursesModel
+        fields = '__all__'
+
+    def update(self, instance, validated_data):
+        validated_data['_id'] = ObjectId(instance.pk)
+        validated_data['updated_at'] = datetime.now()
+
+        sections = CourseSectionsModel.objects.all()
+        for section in sections:
+            course_position = 0
+            for course in section.courses:
+                if course['_id'] == instance.pk:
+                    validated_data['created_at'] = course['created_at']
+                    if not course['certificate']:
+                        validated_data['certificate'] = ""
+
+                    section.courses[course_position] = validated_data
+                    new_courses = CourseSectionsModel.objects.filter(_id=ObjectId(section.pk)).first()
+                    new_courses.courses = section.courses
+                    new_courses.save()
+
+                course_position += 1
+
+        CoursesModel.objects.filter(_id=ObjectId(instance.pk)).update(**validated_data)
+
+        return CoursesModel.objects.filter(_id=ObjectId(instance.pk)).first()
+
+
 class CourseSectionSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -65,3 +98,40 @@ class CourseSectionSerializer(serializers.ModelSerializer):
 
         course_section = CourseSectionsModel.objects.create(**validated_data)
         return course_section
+
+
+class UpdateCourseSectionSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=True)
+
+    class Meta:
+        model = CourseSectionsModel
+        fields = ('name', )
+
+
+class PatchCourseSerializer(serializers.ModelSerializer):
+    course_section_id = serializers.CharField(required=True)
+
+    class Meta:
+        model = CourseSectionsModel
+        fields = ('course_section_id',)
+
+    def update(self, instance, validated_data):
+        sections = CourseSectionsModel.objects.all()
+        for section in sections:
+            course_position = 0
+            for course in section.courses:
+                if course['_id'] == instance.pk:
+                    course_to_change = course
+                    section.courses.pop(course_position)
+                    old_courses = CourseSectionsModel.objects.filter(_id=ObjectId(section.pk)).first()
+                    old_courses.courses = section.courses
+                    old_courses.save()
+
+                    new_courses = CourseSectionsModel.objects.filter(
+                        _id=ObjectId(validated_data['course_section_id'])).first()
+                    new_courses.courses.append(course_to_change)
+                    new_courses.save()
+
+                course_position += 1
+
+        return instance

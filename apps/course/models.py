@@ -23,23 +23,20 @@ class CoursesModel(models.Model):
         return f"{self.name} in {self.company}"
 
     def delete(self, using=None, keep_parents=False):
-        new_courses = list()
-        section_id_to_update = str()
         if self.certificate.name:
             self.certificate.storage.delete(self.certificate.name)
 
         if using is None:
             sections = CourseSectionsModel.objects.all()
             for section in sections:
+                position = 0
                 for course in section.courses:
-                    if course['_id'] != self._id:
-                        new_courses.append(course)
-                        section_id_to_update = section.pk
-
-            section_to_update = CourseSectionsModel.objects.filter(_id=ObjectId(section_id_to_update)).first()
-            section_to_update.courses = new_courses
-            section_to_update.save()
-
+                    if course['_id'] == self._id:
+                        section_to_update = CourseSectionsModel.objects.filter(_id=ObjectId(section.pk)).first()
+                        section_to_update.courses.pop(position)
+                        section_to_update.save()
+                        break
+                position += 1
         super().delete()
 
 
