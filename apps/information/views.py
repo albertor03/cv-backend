@@ -6,10 +6,23 @@ from rest_framework.response import Response
 from .serializers import PersonalInformationSerializer, PersonalInformationModel
 
 
-class PersonalInformationAPIView(generics.ListCreateAPIView):
+class PersonalInformationAPIView(generics.CreateAPIView):
     queryset = PersonalInformationModel.objects.all()
     serializer_class = PersonalInformationSerializer
     statusCode = status.HTTP_400_BAD_REQUEST
+
+    def get(self, request, **kwargs):
+        info = self.get_queryset().first()
+        data = {'data': {}, 'errors': ['Information not found.']}
+        self.statusCode = status.HTTP_404_NOT_FOUND
+
+        if info:
+            info_serializer = self.serializer_class(info)
+            data["data"] = info_serializer.data
+            data["errors"].clear()
+            self.statusCode = status.HTTP_200_OK
+
+        return Response(data, status=self.statusCode)
 
     def post(self, request, **kwargs):
         info = self.get_queryset()
@@ -35,19 +48,7 @@ class PersonalInformationDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PersonalInformationSerializer
     data = {'data': {}, 'errors': []}
     statusCode = status.HTTP_400_BAD_REQUEST
-
-    def get(self, request, **kwargs):
-        info = self.get_queryset()
-        data = {'data': {}, 'errors': ['Information not found.']}
-        self.statusCode = status.HTTP_404_NOT_FOUND
-
-        if info:
-            info_serializer = self.serializer_class(info)
-            data["data"] = info_serializer.data
-            data["errors"].clear()
-            self.statusCode = status.HTTP_200_OK
-
-        return Response(data, status=self.statusCode)
+    http_method_names = ['put', 'delete']
 
     def put(self, request, **kwargs):
         info = self.get_queryset()
