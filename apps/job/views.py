@@ -11,15 +11,12 @@ from .serializers import (
     ActiveJobSerializer
 )
 
-
-def _return_not_found_response():
-    return {'data': {}, 'errors': ['Information not found.']}, status.HTTP_404_NOT_FOUND
+from ..Utilities.utilities import Utilities
 
 
 class ListCreateJobAPIView(generics.ListCreateAPIView):
     serializer_class = CreateJobSerializer
-    data = {'data': {}, 'errors': ['Bad request.']}
-    statusCode = status.HTTP_400_BAD_REQUEST
+    data, statusCode = Utilities.return_response()
 
     def get(self, request, **kwargs):
         job_serializer = ListJobSerializer(JobModels.objects.all(), many=True)
@@ -55,12 +52,11 @@ class RetrieveUpdateDestroyJobAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = CreateJobSerializer
     list_serializer_class = ListJobSerializer
-    data = {'data': {}, 'errors': []}
-    statusCode = status.HTTP_400_BAD_REQUEST
+    data, statusCode = Utilities.return_response()
 
     def get(self, request, **kwargs):
         info = self.get_queryset()
-        self.data, self.statusCode = _return_not_found_response()
+        self.data, self.statusCode = Utilities.return_response('not_found')
 
         if info:
             info_serializer = self.list_serializer_class(info)
@@ -72,7 +68,7 @@ class RetrieveUpdateDestroyJobAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def put(self, request, **kwargs):
         info = self.get_queryset()
-        self.data, self.statusCode = _return_not_found_response()
+        self.data, self.statusCode = Utilities.return_response('not_found')
 
         if info:
             serializer = self.list_serializer_class(info, data=request.data)
@@ -86,7 +82,7 @@ class RetrieveUpdateDestroyJobAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def patch(self, request, **kwargs):
         user = self.get_queryset()
-        self.data, self.statusCode = _return_not_found_response()
+        self.data, self.statusCode = Utilities.return_response('not_found')
         if user:
             serializer = ActiveJobSerializer(user, request.data, partial=True)
             if serializer.is_valid(raise_exception=True):
@@ -99,7 +95,7 @@ class RetrieveUpdateDestroyJobAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def delete(self, request, **kwargs):
         user = self.get_queryset()
-        self.data, self.statusCode = _return_not_found_response()
+        self.data, self.statusCode = Utilities.return_response('not_found')
         if user:
             user.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
