@@ -11,6 +11,7 @@ class CoursesModel(models.Model):
     company = models.CharField('Company name', max_length=150)
     end_date = models.DateField('End Date')
     certificate = models.FileField(upload_to='course', null=True, storage=RawMediaCloudinaryStorage())
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField('Created at', auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField('Updated at', auto_now=True, auto_now_add=False)
 
@@ -45,6 +46,7 @@ class CourseSectionsModel(models.Model):
     _id = models.ObjectIdField()
     name = models.CharField('Course name', max_length=100)
     courses = models.ArrayField(model_container=CoursesModel, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField('Created at', auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField('Updated at', auto_now=True, auto_now_add=False)
 

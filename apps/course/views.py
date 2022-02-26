@@ -13,24 +13,19 @@ from .serializers import (
     PatchCourseSerializer,
     UpdateCourseSerializer
 )
+from ..Utilities.utilities import Utilities
 
 
 class ListCreateCourseSectionAPIView(generics.ListCreateAPIView):
     serializer_class = CourseSectionSerializer
-    data = {'data': {}, 'errors': ['Information not found.']}
-    statusCode = status.HTTP_400_BAD_REQUEST
+    data, statusCode = Utilities.bad_responses('bad_request')
 
     def get(self, request, *args, **kwargs):
-        data = self.get_serializer().Meta.model.objects.all()
-        if data:
-            serializer = self.serializer_class(data, many=True)
-            self.data['data'] = serializer.data
-            self.data['errors'].clear()
-            self.statusCode = status.HTTP_200_OK
-        else:
-            self.data['data'].clear()
-            self.data['errors'].clear()
-            self.statusCode = status.HTTP_200_OK
+        serializer = self.serializer_class(self.get_serializer().Meta.model.objects.all(),
+                                           many=True, context={'request': request})
+
+        self.data, self.statusCode = Utilities.ok_response('ok', serializer.data)
+        self.data['total_course_sections'] = len(serializer.data)
 
         return Response(self.data, self.statusCode)
 
@@ -38,9 +33,8 @@ class ListCreateCourseSectionAPIView(generics.ListCreateAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            self.data['data'] = serializer.data
-            self.data['errors'].clear()
-            self.statusCode = status.HTTP_201_CREATED
+            self.data, self.statusCode = Utilities.ok_response(
+                'post', serializer.data)
 
         return Response(self.data, self.statusCode)
 
@@ -48,9 +42,7 @@ class ListCreateCourseSectionAPIView(generics.ListCreateAPIView):
 class RetrieveUpdateDestroyCourseSectionAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CourseSectionSerializer
     update_serializer_class = UpdateCourseSectionSerializer
-    data = {'data': {}, 'errors': ['Information not found.']}
-    statusCode = status.HTTP_400_BAD_REQUEST
-    http_method_names = ['get', 'delete', 'patch']
+    data, statusCode = Utilities.bad_responses('bad_request')
 
     def get_queryset(self):
         queryset = self.get_serializer().Meta.model.objects.filter(_id=ObjectId(self.kwargs["pk"])).first()
@@ -58,29 +50,29 @@ class RetrieveUpdateDestroyCourseSectionAPIView(generics.RetrieveUpdateDestroyAP
 
     def get(self, request, *args, **kwargs):
         data = self.get_queryset()
+        self.data, self.statusCode = Utilities.bad_responses('not_found')
         if data:
-            serializer = self.serializer_class(data, context={'request': request})
-            self.data["data"] = serializer.data
-            self.data["errors"].clear()
-            self.statusCode = status.HTTP_200_OK
+            self.data, self.statusCode = Utilities.ok_response(
+                'ok', self.serializer_class(data, context={'request': request}).data)
 
         return Response(self.data, status=self.statusCode)
 
-    def patch(self, request, **kwargs):
+    def patch(self, request, *args, **kwargs):
         data = self.get_queryset()
+        self.data, self.statusCode = Utilities.bad_responses('not_found')
+
         if data:
             serializer = self.update_serializer_class(data, request.data, partial=True, context={'request': request})
-            if serializer.is_valid():
+            if serializer.is_valid(raise_exception=True):
                 section = serializer.save()
-                self.data["data"] = self.serializer_class(section).data
-                self.data["errors"].clear()
-                self.statusCode = status.HTTP_200_OK
+                self.data, self.statusCode = Utilities.ok_response('ok', self.serializer_class(section).data)
 
         return Response(self.data, status=self.statusCode)
 
     def delete(self, request, **kwargs):
         data = self.get_queryset()
-        self.statusCode = status.HTTP_404_NOT_FOUND
+        self.data, self.statusCode = Utilities.bad_responses('not_found')
+
         if data:
             data.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)

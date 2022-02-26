@@ -101,11 +101,12 @@ class CourseSectionSerializer(serializers.ModelSerializer):
 
 
 class UpdateCourseSectionSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(required=True)
+    name = serializers.CharField()
+    is_active = serializers.BooleanField()
 
     class Meta:
         model = CourseSectionsModel
-        fields = ('name', )
+        fields = ('name', 'is_active')
 
 
 class PatchCourseSerializer(serializers.ModelSerializer):
