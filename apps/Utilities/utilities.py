@@ -18,7 +18,8 @@ class Utilities(object):
     def ok_response(response, serializer) -> list:
         switch = {
             'ok': [{'data': serializer, 'errors': []}, status.HTTP_200_OK],
-            'post': [{'data': serializer, 'errors': []}, status.HTTP_201_CREATED]
+            'post': [{'data': serializer, 'errors': []}, status.HTTP_201_CREATED],
+            'patch': [{'data': {}, 'errors': []}, status.HTTP_204_NO_CONTENT]
         }
 
         return switch.get(response, 'ok')
