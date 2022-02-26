@@ -12,6 +12,7 @@ class EducationModels(models.Model):
     end_date = models.DateField('End date', null=True, blank=True)
     currently = models.BooleanField('Currently', default=False)
     certificate = models.FileField(upload_to='education', null=True, blank=True, storage=RawMediaCloudinaryStorage())
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField('Created at', auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField('Updated at', auto_now=True, auto_now_add=False)
 

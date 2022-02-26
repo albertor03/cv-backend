@@ -36,7 +36,8 @@ class CreateCourseSerializer(serializers.ModelSerializer):
         course = self.Meta.model.objects.create(**validated_data)
         new_course_data = {'_id': course.pk, 'name': course.name, 'company': course.company,
                            'certificate': course.certificate, 'end_date': course.end_date,
-                           'created_at': course.created_at, 'updated_at': course.updated_at}
+                           'created_at': course.created_at, 'updated_at': course.updated_at,
+                           'is_active': course.is_active}
         old_course_data = self.section.courses
         if old_course_data is None:
             self.section.courses = [new_course_data]
@@ -91,7 +92,8 @@ class CourseSectionSerializer(serializers.ModelSerializer):
             new_course = CreateCourseSerializer.Meta.model.objects.create(**course)
             new_courses.append({'_id': new_course.pk, 'name': new_course.name, 'company': new_course.company,
                                 'certificate': new_course.certificate, 'end_date': new_course.end_date,
-                                'created_at': new_course.created_at, 'updated_at': new_course.updated_at})
+                                'created_at': new_course.created_at, 'updated_at': new_course.updated_at,
+                                'is_active': new_course.is_active})
 
         if new_courses is not None:
             validated_data['courses'] = new_courses
@@ -101,19 +103,21 @@ class CourseSectionSerializer(serializers.ModelSerializer):
 
 
 class UpdateCourseSectionSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(required=True)
+    name = serializers.CharField()
+    is_active = serializers.BooleanField()
 
     class Meta:
         model = CourseSectionsModel
-        fields = ('name', )
+        fields = ('name', 'is_active')
 
 
 class PatchCourseSerializer(serializers.ModelSerializer):
-    course_section_id = serializers.CharField(required=True)
+    course_section_id = serializers.CharField()
+    is_active = serializers.BooleanField()
 
     class Meta:
         model = CourseSectionsModel
-        fields = ('course_section_id',)
+        fields = ('course_section_id', 'is_active')
 
     def update(self, instance, validated_data):
         sections = CourseSectionsModel.objects.all()
@@ -121,17 +125,26 @@ class PatchCourseSerializer(serializers.ModelSerializer):
             course_position = 0
             for course in section.courses:
                 if course['_id'] == instance.pk:
-                    course_to_change = course
-                    section.courses.pop(course_position)
-                    old_courses = CourseSectionsModel.objects.filter(_id=ObjectId(section.pk)).first()
-                    old_courses.courses = section.courses
-                    old_courses.save()
+                    if 'course_section_id' in validated_data:
+                        course_to_change = course
+                        section.courses.pop(course_position)
+                        old_courses = CourseSectionsModel.objects.filter(_id=ObjectId(section.pk)).first()
+                        old_courses.courses = section.courses
+                        old_courses.save()
 
-                    new_courses = CourseSectionsModel.objects.filter(
-                        _id=ObjectId(validated_data['course_section_id'])).first()
-                    new_courses.courses.append(course_to_change)
-                    new_courses.save()
+                        new_courses = CourseSectionsModel.objects.filter(
+                            _id=ObjectId(validated_data['course_section_id'])).first()
+                        new_courses.courses.append(course_to_change)
+                        new_courses.save()
+                        break
+                    else:
+                        print(instance)
+                        instance.is_active = validated_data['is_active']
+                        instance.save()
 
+                        old_courses = CourseSectionsModel.objects.filter(_id=ObjectId(section.pk)).first()
+                        old_courses.courses[course_position]['is_active'] = validated_data['is_active']
+                        old_courses.save()
+                        break
                 course_position += 1
-
         return instance
