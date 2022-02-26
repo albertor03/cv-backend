@@ -10,30 +10,25 @@ from ..Utilities.utilities import Utilities
 class PersonalInformationAPIView(generics.CreateAPIView):
     queryset = PersonalInformationModel.objects.all()
     serializer_class = PersonalInformationSerializer
-    data, statusCode = Utilities.return_response()
+    data, statusCode = Utilities.bad_responses('bad_request')
 
     def get(self, request, **kwargs):
         info = self.get_queryset().first()
 
         if info:
-            info_serializer = self.serializer_class(info)
-            self.data["data"] = info_serializer.data
-            self.data["errors"].clear()
-            self.statusCode = status.HTTP_200_OK
+            self.data, self.statusCode = Utilities.ok_response('ok', self.serializer_class(info).data)
 
         return Response(self.data, status=self.statusCode)
 
     def post(self, request, **kwargs):
         info = self.get_queryset()
-        self.data, self.statusCode = Utilities.return_response('information_recorded')
+        self.data, self.statusCode = Utilities.bad_responses('information_recorded')
 
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
             if not info:
                 serializer.save()
-                self.data["data"] = serializer.data
-                self.data["errors"].clear()
-                self.statusCode = status.HTTP_201_CREATED
+                self.data, self.statusCode = Utilities.ok_response('post', serializer.data)
 
         return Response(self.data, status=self.statusCode)
 
@@ -45,26 +40,24 @@ class PersonalInformationDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         return queryset
 
     serializer_class = PersonalInformationSerializer
-    data, statusCode = Utilities.return_response()
+    data, statusCode = Utilities.bad_responses('bad_request')
     http_method_names = ['put', 'delete']
 
     def put(self, request, **kwargs):
         info = self.get_queryset()
-        self.data, self.statusCode = Utilities.return_response('not_found')
+        self.data, self.statusCode = Utilities.bad_responses('not_found')
 
         if info:
             serializer = self.serializer_class(info, data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                self.data["data"] = serializer.data
-                self.data["errors"].clear()
-                self.statusCode = status.HTTP_200_OK
+                self.data, self.statusCode = Utilities.ok_response('ok', serializer.data)
 
         return Response(self.data, status=self.statusCode)
 
     def delete(self, request, **kwargs):
         user = self.get_queryset()
-        self.data, self.statusCode = Utilities.return_response('not_found')
+        self.data, self.statusCode = Utilities.bad_responses('not_found')
         if user:
             user.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)

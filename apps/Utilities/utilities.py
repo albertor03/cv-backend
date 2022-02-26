@@ -4,7 +4,7 @@ from rest_framework import status
 class Utilities(object):
 
     @staticmethod
-    def return_response(response="") -> list:
+    def bad_responses(response="") -> list:
         switch = {
             'not_found': [{'data': {}, 'errors': ['Information not found.']}, status.HTTP_404_NOT_FOUND],
             'bad_request': [{'data': {}, 'errors': ['Bad request.']}, status.HTTP_400_BAD_REQUEST],
@@ -13,3 +13,12 @@ class Utilities(object):
         }
 
         return switch.get(response, 'bad_request')
+
+    @staticmethod
+    def ok_response(response, serializer) -> list:
+        switch = {
+            'ok': [{'data': serializer, 'errors': []}, status.HTTP_200_OK],
+            'post': [{'data': serializer, 'errors': []}, status.HTTP_201_CREATED]
+        }
+
+        return switch.get(response, 'ok')
