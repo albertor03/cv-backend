@@ -146,5 +146,5 @@ class PatchCourseSerializer(serializers.ModelSerializer):
                         old_courses.courses[course_position]['is_active'] = validated_data['is_active']
                         old_courses.save()
                         break
-            course_position += 1
+                course_position += 1
         return instance
