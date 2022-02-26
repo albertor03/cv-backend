@@ -20,9 +20,9 @@ class ListCreateEducationAPIView(generics.ListCreateAPIView):
     def get(self, request, **kwargs):
         serializer = self.list_serializer_class(self.get_serializer().Meta.model.objects.all(),
                                                 many=True, context={'request': request})
-        if serializer:
-            self.data, self.statusCode = Utilities.ok_response('ok', serializer.data)
-            self.data['total_educations'] = len(serializer.data)
+
+        self.data, self.statusCode = Utilities.ok_response('ok', serializer.data)
+        self.data['total_educations'] = len(serializer.data)
 
         return Response(self.data, status=self.statusCode)
 

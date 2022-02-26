@@ -5,6 +5,7 @@ class SkillModel(models.Model):
     _id = models.ObjectIdField()
     name = models.CharField('Skill name', max_length=100)
     percentage = models.FloatField('Percentage')
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField('Created at', auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField('Updated at', auto_now=True, auto_now_add=False)
 
