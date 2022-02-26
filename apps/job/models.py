@@ -10,6 +10,8 @@ class JobModels(models.Model):
     end_date = models.DateTimeField('Start Date', blank=True, null=True)
     currently = models.BooleanField(default=False)
     address = models.CharField('Address', max_length=100)
+    description = models.CharField('Job Description', max_length=255, default="")
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField('Created at', auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField('Updated at', auto_now=True, auto_now_add=False)
 
