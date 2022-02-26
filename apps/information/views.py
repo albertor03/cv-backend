@@ -14,6 +14,7 @@ class PersonalInformationAPIView(generics.CreateAPIView):
 
     def get(self, request, **kwargs):
         info = self.get_queryset().first()
+        self.data, self.statusCode = Utilities.bad_responses('not_found')
 
         if info:
             self.data, self.statusCode = Utilities.ok_response('ok', self.serializer_class(info).data)
