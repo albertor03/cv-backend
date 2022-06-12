@@ -5,15 +5,16 @@ from rest_framework import generics
 from rest_framework.response import Response
 
 
-# from .serializers import (
-#     CourseSectionSerializer,
-#     UpdateCourseSectionSerializer,
-#     CreateCourseSerializer,
-#     ListCourseSerializer,
-#     PatchCourseSerializer,
-#     UpdateCourseSerializer
-# )
-from .serializers import (CourseSerializer, CreateCourseSectionSerializer, UpdateCourseSectionSerializer)
+from .serializers import (
+    # CourseSectionSerializer,
+    UpdateCourseSectionSerializer,
+    CreateCourseSerializer,
+    CreateCourseSectionSerializer,
+    CourseSerializer
+    # ListCourseSerializer,
+    # PatchCourseSerializer,
+    # UpdateCourseSerializer
+)
 from ..Utilities.utilities import Utilities
 
 
@@ -73,13 +74,13 @@ class RetrieveUpdateDestroyCourseSectionAPIView(generics.RetrieveUpdateDestroyAP
 
 
 class ListCreateCourseAPIView(generics.ListCreateAPIView):
-    serializer_class = CourseSerializer
+    serializer_class = CreateCourseSerializer
     list_serializer_class = CourseSerializer
     data, statusCode = Utilities.bad_responses('bad_request')
 
     def get(self, request, *args, **kwargs):
-        serializer = self.serializer_class(self.list_serializer_class().Meta.model.objects.all(), many=True,
-                                           context={'request': request})
+        serializer = self.list_serializer_class(self.get_serializer().Meta.model.objects.all(), many=True,
+                                                context={'request': request})
 
         self.data, self.statusCode = Utilities.ok_response(serializer=serializer.data)
         self.data['total_courses'] = len(serializer.data)

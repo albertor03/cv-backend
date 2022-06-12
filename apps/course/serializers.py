@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from bson import ObjectId
-from rest_framework.relations import PrimaryKeyRelatedField
 
 from .models import CourseSectionsModel, CoursesModel
 
@@ -34,38 +33,29 @@ class CreateCourseSectionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# class CreateCourseSerializer(serializers.ModelSerializer):
-#     course_section_id = serializers.CharField()
-#
-#     section = str()
-#
-#     class Meta:
-#         model = CoursesModel
-#         fields = '__all__'
-#
-#     def validate(self, attrs):
-#         self.section = CourseSectionSerializer.Meta.model.objects.filter(
-#             _id=ObjectId(attrs['course_section_id'])).first()
-#         if not self.section:
-#             raise serializers.ValidationError({'data': {}, 'errors': ['Course Section not found.']})
-#
-#         return attrs
-#
-#     def create(self, validated_data):
-#         validated_data.pop('course_section_id')
-#         course = self.Meta.model.objects.create(**validated_data)
-#         new_course_data = {'_id': course.pk, 'name': course.name, 'company': course.company,
-#                            'certificate': course.certificate, 'end_date': course.end_date,
-#                            'created_at': course.created_at, 'updated_at': course.updated_at,
-#                            'is_active': course.is_active}
-#         old_course_data = self.section.courses
-#         if old_course_data is None:
-#             self.section.courses = [new_course_data]
-#         else:
-#             old_course_data.append(new_course_data)
-#             self.section.courses = old_course_data
-#         self.section.save()
-#         return course
+class CreateCourseSerializer(serializers.ModelSerializer):
+    course_section_id = serializers.CharField()
+
+    section = str()
+
+    class Meta:
+        model = CoursesModel
+        fields = '__all__'
+
+    def validate(self, attrs):
+        self.section = CreateCourseSectionSerializer.Meta.model.objects.filter(
+            _id=ObjectId(attrs['course_section_id'])).first()
+        if not self.section:
+            raise serializers.ValidationError({'data': {}, 'errors': ['Course Section not found.']})
+
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop('course_section_id')
+        course = self.Meta.model.objects.create(**validated_data)
+        self.section.courses.add(course)
+        self.section.save()
+        return course
 #
 #
 # class UpdateCourseSerializer(serializers.ModelSerializer):
