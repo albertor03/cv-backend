@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from .serializers import (
     EducationSerializer,
     CreateEducationSerializer,
-    EducationModels
+    EducationModels, UpdateEducationSerializer
 )
 from ..Utilities.utilities import Utilities
 
@@ -48,6 +48,7 @@ class RetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = CreateEducationSerializer
     list_serializer_class = EducationSerializer
+    update_serializer_class = UpdateEducationSerializer
     data, statusCode = Utilities.bad_responses('bad_request')
 
     def get(self, request, **kwargs):
@@ -65,7 +66,7 @@ class RetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
         self.data, self.statusCode = Utilities.bad_responses('not_found')
 
         if education:
-            serializer = self.list_serializer_class(education, data=request.data, context={'request': request})
+            serializer = self.update_serializer_class(education, data=request.data, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
                 self.data, self.statusCode = Utilities.ok_response('ok', serializer.data)
