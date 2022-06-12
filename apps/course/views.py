@@ -13,7 +13,7 @@ from rest_framework.response import Response
 #     PatchCourseSerializer,
 #     UpdateCourseSerializer
 # )
-from .serializers import (CourseSerializer, CreateCourseSectionSerializer)
+from .serializers import (CourseSerializer, CreateCourseSectionSerializer, UpdateCourseSectionSerializer)
 from ..Utilities.utilities import Utilities
 
 
@@ -41,33 +41,25 @@ class ListCreateCourseSectionAPIView(generics.ListCreateAPIView):
 
 class RetrieveUpdateDestroyCourseSectionAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CreateCourseSectionSerializer
-    # update_serializer_class = UpdateCourseSectionSerializer
+    update_serializer_class = UpdateCourseSectionSerializer
     data, statusCode = Utilities.bad_responses('bad_request')
+    http_method_names = ['patch', 'delete']
 
     def get_queryset(self):
         queryset = self.get_serializer().Meta.model.objects.filter(_id=ObjectId(self.kwargs["pk"])).first()
         return queryset
 
-    def get(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
         data = self.get_queryset()
         self.data, self.statusCode = Utilities.bad_responses('not_found')
+
         if data:
-            self.data, self.statusCode = Utilities.ok_response(
-                'ok', self.serializer_class(data, context={'request': request}).data)
+            serializer = self.update_serializer_class(data, request.data, partial=True, context={'request': request})
+            if serializer.is_valid(raise_exception=True):
+                section = serializer.save()
+                self.data, self.statusCode = Utilities.ok_response(serializer=self.serializer_class(section).data)
 
         return Response(self.data, status=self.statusCode)
-    #
-    # def patch(self, request, *args, **kwargs):
-    #     data = self.get_queryset()
-    #     self.data, self.statusCode = Utilities.bad_responses('not_found')
-    #
-    #     if data:
-    #         serializer = self.update_serializer_class(data, request.data, partial=True, context={'request': request})
-    #         if serializer.is_valid(raise_exception=True):
-    #             section = serializer.save()
-    #             self.data, self.statusCode = Utilities.ok_response('ok', self.serializer_class(section).data)
-    #
-    #     return Response(self.data, status=self.statusCode)
 
     def delete(self, request, **kwargs):
         data = self.get_queryset()
@@ -89,7 +81,7 @@ class ListCreateCourseAPIView(generics.ListCreateAPIView):
         serializer = self.serializer_class(self.list_serializer_class().Meta.model.objects.all(), many=True,
                                            context={'request': request})
 
-        self.data, self.statusCode = Utilities.ok_response('ok', serializer.data)
+        self.data, self.statusCode = Utilities.ok_response(serializer=serializer.data)
         self.data['total_courses'] = len(serializer.data)
 
         return Response(self.data, self.statusCode)

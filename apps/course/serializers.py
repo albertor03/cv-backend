@@ -122,13 +122,13 @@ class CreateCourseSectionSerializer(serializers.ModelSerializer):
 #         return course_section
 #
 #
-# class UpdateCourseSectionSerializer(serializers.ModelSerializer):
-#     name = serializers.CharField()
-#     is_active = serializers.BooleanField()
-#
-#     class Meta:
-#         model = CourseSectionsModel
-#         fields = ('name', 'is_active')
+class UpdateCourseSectionSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    is_active = serializers.BooleanField()
+
+    class Meta:
+        model = CourseSectionsModel
+        fields = ('name', 'is_active')
 #
 #
 # class PatchCourseSerializer(serializers.ModelSerializer):
