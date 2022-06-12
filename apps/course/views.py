@@ -22,10 +22,10 @@ class ListCreateCourseSectionAPIView(generics.ListCreateAPIView):
     data, statusCode = Utilities.bad_responses('bad_request')
 
     def get(self, request, *args, **kwargs):
-        serializer = self.serializer_class(self.get_serializer().Meta.model.objects.all(),
-                                           many=True, context={'request': request})
+        serializer = self.serializer_class(self.get_serializer().Meta.model.objects.all(), many=True,
+                                           context={'request': request})
 
-        self.data, self.statusCode = Utilities.ok_response('ok', serializer.data)
+        self.data, self.statusCode = Utilities.ok_response(serializer=serializer.data)
         self.data['total_course_sections'] = len(serializer.data)
 
         return Response(self.data, self.statusCode)
@@ -34,8 +34,7 @@ class ListCreateCourseSectionAPIView(generics.ListCreateAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            self.data, self.statusCode = Utilities.ok_response(
-                'post', serializer.data)
+            self.data, self.statusCode = Utilities.ok_response('post', serializer.data)
 
         return Response(self.data, self.statusCode)
 
@@ -48,15 +47,15 @@ class RetrieveUpdateDestroyCourseSectionAPIView(generics.RetrieveUpdateDestroyAP
     def get_queryset(self):
         queryset = self.get_serializer().Meta.model.objects.filter(_id=ObjectId(self.kwargs["pk"])).first()
         return queryset
-    #
-    # def get(self, request, *args, **kwargs):
-    #     data = self.get_queryset()
-    #     self.data, self.statusCode = Utilities.bad_responses('not_found')
-    #     if data:
-    #         self.data, self.statusCode = Utilities.ok_response(
-    #             'ok', self.serializer_class(data, context={'request': request}).data)
-    #
-    #     return Response(self.data, status=self.statusCode)
+
+    def get(self, request, *args, **kwargs):
+        data = self.get_queryset()
+        self.data, self.statusCode = Utilities.bad_responses('not_found')
+        if data:
+            self.data, self.statusCode = Utilities.ok_response(
+                'ok', self.serializer_class(data, context={'request': request}).data)
+
+        return Response(self.data, status=self.statusCode)
     #
     # def patch(self, request, *args, **kwargs):
     #     data = self.get_queryset()
@@ -87,8 +86,8 @@ class ListCreateCourseAPIView(generics.ListCreateAPIView):
     data, statusCode = Utilities.bad_responses('bad_request')
 
     def get(self, request, *args, **kwargs):
-        serializer = self.serializer_class(self.list_serializer_class().Meta.model.objects.all(),
-                                                many=True, context={'request': request})
+        serializer = self.serializer_class(self.list_serializer_class().Meta.model.objects.all(), many=True,
+                                           context={'request': request})
 
         self.data, self.statusCode = Utilities.ok_response('ok', serializer.data)
         self.data['total_courses'] = len(serializer.data)
