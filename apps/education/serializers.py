@@ -19,7 +19,7 @@ class UpdateEducationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def update(self, instance, validated_data):
-        education = EducationModels.objects.filter(_id=ObjectId(instance.pk)).first()
+        education = self.Meta.model.objects.filter(_id=ObjectId(instance.pk)).first()
         if education.certificate.name:
             education.certificate.delete(education.certificate.name)
 
