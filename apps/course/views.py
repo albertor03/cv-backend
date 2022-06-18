@@ -9,10 +9,8 @@ from .serializers import (
     UpdateCourseSectionSerializer,
     CreateCourseSerializer,
     CreateCourseSectionSerializer,
-    ListUpdateCourseSerializer
-    # ListCourseSerializer,
-    # PatchCourseSerializer,
-    # UpdateCourseSerializer
+    ListUpdateCourseSerializer,
+    PatchCourseSerializer,
 )
 from ..Utilities.utilities import Utilities
 
@@ -99,8 +97,7 @@ class ListCreateCourseAPIView(generics.ListCreateAPIView):
 class RetrieveUpdateDestroyCourseAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CreateCourseSerializer
     list_update_serializer_class = ListUpdateCourseSerializer
-    # update_serializer_class = UpdateCourseSerializer
-    # path_serializer_class = PatchCourseSerializer
+    path_serializer_class = PatchCourseSerializer
     data, statusCode = Utilities.bad_responses('bad_request')
 
     def get_queryset(self):
@@ -129,11 +126,11 @@ class RetrieveUpdateDestroyCourseAPIView(generics.RetrieveUpdateDestroyAPIView):
         return Response(self.data, self.statusCode)
 
     def patch(self, request, **kwargs):
-        data = self.get_queryset()
         self.data, self.statusCode = Utilities.bad_responses('not_found')
 
-        if data:
-            serializer = self.path_serializer_class(data, request.data, partial=True, context={'request': request})
+        if self.get_queryset():
+            serializer = self.path_serializer_class(self.get_queryset(), request.data, partial=True,
+                                                    context={'request': request})
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return Response(status=Utilities.ok_response('patch', '')[1])
@@ -141,11 +138,10 @@ class RetrieveUpdateDestroyCourseAPIView(generics.RetrieveUpdateDestroyAPIView):
         return Response(self.data, status=self.statusCode)
 
     def delete(self, request, **kwargs):
-        data = self.get_queryset()
         self.data, self.statusCode = Utilities.bad_responses('not_found')
 
-        if data:
-            data.delete()
+        if self.get_queryset():
+            self.get_queryset().delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(self.data, status=self.statusCode)
