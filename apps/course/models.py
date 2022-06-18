@@ -27,17 +27,12 @@ class CoursesModel(models.Model):
         if self.certificate.name:
             self.certificate.storage.delete(self.certificate.name)
 
-        if using is None:
-            sections = CourseSectionsModel.objects.all()
-            for section in sections:
-                position = 0
-                for course in section.courses:
-                    if course['_id'] == self._id:
-                        section_to_update = CourseSectionsModel.objects.filter(_id=ObjectId(section.pk)).first()
-                        section_to_update.courses.pop(position)
-                        section_to_update.save()
-                        break
-                position += 1
+        sections = CourseSectionsModel.objects.all()
+
+        for section in sections:
+            if self.pk in section.courses_id:
+                section.courses_id.remove(self.pk)
+
         super().delete()
 
 
@@ -45,7 +40,11 @@ class CourseSectionsModel(models.Model):
 
     _id = models.ObjectIdField()
     name = models.CharField('Course name', max_length=100)
-    courses = models.ArrayField(model_container=CoursesModel, null=True, blank=True)
+    courses = models.ArrayReferenceField(
+        to=CoursesModel,
+        null=True,
+        blank=True,
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField('Created at', auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField('Updated at', auto_now=True, auto_now_add=False)
@@ -61,7 +60,7 @@ class CourseSectionsModel(models.Model):
         return f"{self.name}"
 
     def delete(self, using=None, keep_parents=False):
-        for course in self.courses:
-            CoursesModel.objects.filter(_id=ObjectId(course['_id'])).first().delete(True)
+        for course in list(self.courses.all()):
+            CoursesModel.objects.filter(_id=course.pk).first().delete(True)
 
         super().delete()

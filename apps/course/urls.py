@@ -2,9 +2,9 @@ from django.urls import path
 
 from .views import (
     ListCreateCourseSectionAPIView,
+    RetrieveUpdateDestroyCourseSectionAPIView,
     ListCreateCourseAPIView,
     RetrieveUpdateDestroyCourseAPIView,
-    RetrieveUpdateDestroyCourseSectionAPIView
 )
 
 urlpatterns = [
