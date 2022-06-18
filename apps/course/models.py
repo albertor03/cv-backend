@@ -26,6 +26,13 @@ class CoursesModel(models.Model):
     def delete(self, using=None, keep_parents=False):
         if self.certificate.name:
             self.certificate.storage.delete(self.certificate.name)
+
+        sections = CourseSectionsModel.objects.all()
+
+        for section in sections:
+            if self.pk in section.courses_id:
+                section.courses_id.remove(self.pk)
+
         super().delete()
 
 
@@ -37,7 +44,6 @@ class CourseSectionsModel(models.Model):
         to=CoursesModel,
         null=True,
         blank=True,
-        on_delete=models.CASCADE
     )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField('Created at', auto_now=False, auto_now_add=True)

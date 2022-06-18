@@ -96,7 +96,6 @@ class PatchCourseSerializer(serializers.ModelSerializer):
                 if ObjectId(validated_data['course_section_id']) == section.pk:
                     section.courses_id.add(instance.pk)
 
-                course_section_position += 1
                 section.save()
         else:
             instance.is_active = validated_data['is_active']
