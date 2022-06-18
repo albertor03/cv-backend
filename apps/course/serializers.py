@@ -53,7 +53,7 @@ class CreateCourseSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(self, attrs):
-        self.section = self.Meta.model.objects.filter(_id=ObjectId(attrs['course_section_id'])).first()
+        self.section = CourseSectionsModel.objects.filter(_id=ObjectId(attrs['course_section_id'])).first()
         if not self.section:
             raise serializers.ValidationError({'data': {}, 'errors': ['Course Section not found.']})
 
