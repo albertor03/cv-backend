@@ -57,7 +57,7 @@ class GetAllUsersTestCasesUser(TestUserSetUp):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['data'])
         self.assertFalse(resp.data['errors'])
-        self.assertEqual(resp.data['total_user'], how_much + 1)
+        self.assertEqual(resp.data['total_users'], how_much + 1)
 
 
 class DetailUserTestCasesUser(TestUserSetUp):
@@ -114,7 +114,7 @@ class DetailUserTestCasesUser(TestUserSetUp):
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
         self.assertFalse(resp.data['data'])
         self.assertTrue(resp.data['errors'])
-        self.assertEqual(resp.data['errors'][0], 'User not found.')
+        self.assertEqual(resp.data['errors'][0], 'Information not found.')
 
 
 class ResetPasswordTestCasesUser(TestChangePwdSetUp):

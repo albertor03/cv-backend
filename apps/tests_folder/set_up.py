@@ -19,7 +19,7 @@ def generate_user():
         "username": f"{name}{last}",
         "first_name": name,
         "last_name": last,
-        "email": "alberto.zapata.orta@gmail.com",
+        "email": chance.email(),
         "password": pwd,
         "confirm_password": pwd
     }
