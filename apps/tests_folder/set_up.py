@@ -32,7 +32,8 @@ def generate_job():
         "start_date": datetime.now(),
         "end_date": datetime.now(),
         "currently": chance.boolean(),
-        "address": chance.country()
+        "address": chance.country(),
+        "description": chance.paragraph(1)
     }
 
 
