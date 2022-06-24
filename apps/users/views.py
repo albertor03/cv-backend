@@ -26,16 +26,15 @@ from .serializers import (
 )
 
 from ..send_email.email import SendEmail
+from ..Utilities.utilities import Utilities
 
 
 class SingUpUserApiView(generics.CreateAPIView):
     serializer_class = UserRegisterSerializer
-    data = {}
-    statusCode = status.HTTP_400_BAD_REQUEST
+    data, statusCode = Utilities.bad_responses('bad_request')
     permission_classes = [AllowAny]
 
     def post(self, request, **kwargs):
-        self.data = {'data': {}, 'errors': ['Bad request.']}
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             req = {'username': request.data['username'], 'password': request.data['password']}
@@ -48,15 +47,13 @@ class SingUpUserApiView(generics.CreateAPIView):
 
             url = reverse('active_user', kwargs={'token': data['token']}, request=request)
 
-            resp = SendEmail().send_simple_message(user.email, "User Register", f"User register body {url}")
+            self.data['errors'] = [SendEmail().send_simple_message(user.email, "User Register",
+                                                                   f"User register body {url}")]
 
-            if resp.status_code == status.HTTP_200_OK:
-                self.data['data'] = UserSerializer(user).data
-                self.data['errors'].clear()
-                self.statusCode = status.HTTP_201_CREATED
+            if not self.data['errors'][0]:
+                self.data, self.statusCode = Utilities.ok_response('post', UserSerializer(user).data)
             else:
                 user.delete()
-                self.data['errors'] = ["Something happened while sending the user registration email."]
                 self.statusCode = status.HTTP_424_FAILED_DEPENDENCY
 
         return Response(self.data, status=self.statusCode)
@@ -64,73 +61,60 @@ class SingUpUserApiView(generics.CreateAPIView):
 
 class AllUserApiView(generics.ListAPIView):
     serializer_class = UserSerializer
-    statusCode = status.HTTP_200_OK
+    data, statusCode = Utilities.bad_responses('bad_request')
 
     def get(self, request, **kwargs):
-        data = {'data': {}, 'errors': []}
-        user = User.objects.all()
-        users_serializer = self.serializer_class(user, many=True)
+        serializer = self.serializer_class(self.get_serializer().Meta.model.objects.all(), many=True,
+                                           context={'request': request}).data
+        self.data, self.statusCode = Utilities.ok_response(serializer=serializer)
+        self.data['total_users'] = len(serializer)
 
-        data['data'] = users_serializer.data
-        data['errors'].clear()
-        data['total_user'] = len(users_serializer.data)
-
-        return Response(data, status=self.statusCode)
+        return Response(self.data, status=self.statusCode)
 
 
 class DetailUserApiView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserDetailSerializer
-    data = {}
-    error = []
-    statusCode = status.HTTP_200_OK
+    data, statusCode = Utilities.bad_responses()
 
-    @staticmethod
-    def get_object(pk=None):
-        return User.objects.filter(_id=ObjectId(pk)).first()
+    def get_queryset(self, *args, **kwargs):
+        queryset = self.serializer_class.Meta.model.objects.filter(_id=ObjectId(self.kwargs['pk'])).first()
+        return queryset
 
     def get(self, request, pk=None, **kwargs):
-        user = self.get_object(pk)
-        user_data = {}
-        self.error = ['User not found.']
-        self.statusCode = status.HTTP_404_NOT_FOUND
+        self.data, self.statusCode = Utilities.bad_responses('not_found')
+        user = self.get_queryset()
 
         if user:
-            user_serializer = UserSerializer(user)
-            user_data = user_serializer.data
-            self.error = []
-            self.statusCode = status.HTTP_200_OK
-
-        self.data["data"] = user_data
-        self.data["errors"] = self.error
+            self.data, self.statusCode = Utilities.ok_response(
+                'ok', self.serializer_class(user, context={'request': request}).data)
 
         return Response(self.data, status=self.statusCode)
 
     def put(self, request, pk=None, **kwargs):
-        user = self.get_object(pk)
-        self.error = ['User not found.']
+        self.data, self.statusCode = Utilities.bad_responses('not_found')
+        user = self.get_queryset()
         if user:
             serializer = UserSerializer(user, request.data)
             if serializer.is_valid():
                 serializer.save()
-                self.data["data"] = serializer.data
-                self.data["errors"] = []
+                self.data, self.statusCode = Utilities.ok_response(serializer=serializer.data)
 
         return Response(self.data, status=self.statusCode)
 
     def patch(self, request, pk=None, **kwargs):
-        user = self.get_object(pk)
-        self.error = ['User not found.']
+        self.data, self.statusCode = Utilities.bad_responses('not_found')
+        user = self.get_queryset()
         if user:
             serializer = UserSerializer(user, request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                self.data["data"] = serializer.data
-                self.data["errors"] = []
+                self.data, self.statusCode = Utilities.ok_response(serializer=serializer.data)
 
         return Response(self.data, status=self.statusCode)
 
     def delete(self, request, pk=None, **kwargs):
-        user = self.get_object(pk)
+        self.data, self.statusCode = Utilities.bad_responses('not_found')
+        user = self.get_queryset()
         if user:
             user.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -140,8 +124,7 @@ class DetailUserApiView(generics.RetrieveUpdateDestroyAPIView):
 
 class LoginAPIView(TokenObtainPairView):
     serializer_class = TokenObtainPairSerializer
-    data = {}
-    statusCode = status.HTTP_400_BAD_REQUEST
+    data, statusCode = Utilities.bad_responses()
 
     def post(self, request, *args, **kwargs):
         self.data = {'data': dict(), 'errors': ['Invalid credentials.']}
@@ -158,9 +141,7 @@ class LoginAPIView(TokenObtainPairView):
             else:
                 data = MakeToken().create_token(request.data)
                 if data:
-                    self.data['data'] = data
-                    self.data['errors'].clear()
-                    self.statusCode = status.HTTP_200_OK
+                    self.data, self.statusCode = Utilities.ok_response(serializer=data)
                     user.last_login = timezone.now()
                     user.save()
         else:

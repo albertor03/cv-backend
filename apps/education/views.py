@@ -42,7 +42,7 @@ class ListCreateEducationAPIView(generics.ListCreateAPIView):
 
 class RetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
-    def get_queryset(self):
+    def get_queryset(self, *args, **kwargs):
         queryset = EducationModels.objects.filter(_id=ObjectId(self.kwargs["pk"])).first()
         return queryset
 
