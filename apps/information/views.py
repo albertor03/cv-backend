@@ -13,13 +13,12 @@ class PersonalInformationAPIView(generics.CreateAPIView):
     data, statusCode = Utilities.bad_responses('bad_request')
 
     def get(self, request, **kwargs):
-        info = self.get_queryset().first()
-        self.data, self.statusCode = Utilities.bad_responses('not_found')
-
-        if info:
-            self.data, self.statusCode = Utilities.ok_response('ok', self.serializer_class(info).data)
-
-        return Response(self.data, status=self.statusCode)
+        if self.get_queryset().first():
+            self.data, self.statusCode = Utilities.ok_response('ok',
+                                                               self.serializer_class(self.get_queryset().first()).data)
+            return Response(self.data, status=self.statusCode)
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     def post(self, request, **kwargs):
         info = self.get_queryset()

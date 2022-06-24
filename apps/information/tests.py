@@ -43,40 +43,20 @@ class UserListTestCasesUser(LoginUser):
 
     def test_01_empty_list(self):
         resp = self.client.get(reverse('info'))
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(resp.data)
 
     def test_02_list_information(self):
-        data = {
-            "first_name": chance.first(),
-            "last_name": chance.last(),
-            "email": chance.email(),
-            "profession": "Professional Testing",
-            "phone": "123456789",
-            "address": chance.street()
-        }
-        self.client.post(reverse('info'), data)
+        self.client.post(reverse('info'), self.data)
         resp = self.client.get(reverse('info'))
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertTrue(resp.data)
-        self.assertTrue(resp.data[0]['_id'])
-        self.assertEqual(len(resp.data), 1)
+        self.assertTrue(resp.data['data'])
+        self.assertTrue(resp.data['data']['_id'])
 
 
 class UserDetailTestCasesUser(TestInformationSetUp):
 
-    def test_01_retrieve_information(self):
-        _id = self.resp.data['data']['_id']
-
-        resp = self.client.get(reverse('info_detail', kwargs={'pk': _id}))
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertTrue(resp.data['data']['_id'], _id)
-        self.assertEqual(resp.data['data']['first_name'], self.resp.data['data']['first_name'])
-        self.assertEqual(resp.data['data']['last_name'], self.resp.data['data']['last_name'])
-        self.assertEqual(resp.data['data']['email'], self.resp.data['data']['email'])
-        self.assertEqual(resp.data['data']['profession'], self.resp.data['data']['profession'])
-
-    def test_02_update_information(self):
+    def test_01_update_information(self):
         _id = self.resp.data['data']['_id']
         self.setUp()
 
@@ -88,7 +68,7 @@ class UserDetailTestCasesUser(TestInformationSetUp):
         self.assertEqual(resp.data['data']['email'], self.data['email'])
         self.assertEqual(resp.data['data']['profession'], self.data['profession'])
 
-    def test_03_delete_information(self):
+    def test_02_delete_information(self):
         resp = self.client.delete(reverse('info_detail', kwargs={'pk': self.resp.data['data']['_id']}))
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(resp.data)

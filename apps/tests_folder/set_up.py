@@ -42,10 +42,11 @@ def generate_data():
     return {
         "first_name": name,
         "last_name": last,
-        "email": f"{name}{last}@mailinator.com",
+        "email": chance.email(),
         "profession": "Professional Testing",
-        "phone": chance.phone(),
-        "address": chance.city()
+        "phone": chance.phone(formatted=False),
+        "address": chance.city(),
+        "about": chance.paragraph(1)
     }
 
 
@@ -66,17 +67,18 @@ class RegistrationUser(APITestCase):
 
 
 class LoginUser(APITestCase):
-    data = dict()
+    user = dict()
     resp = None
+    data = generate_data()
 
     def login(self):
-        self.data = generate_user()
-        self.resp = self.client.post(reverse('user_create'), self.data)
+        self.user = generate_user()
+        self.resp = self.client.post(reverse('user_create'), self.user)
         user = User.objects.filter(_id=ObjectId(self.resp.data['data']['_id'])).first()
         user.is_active = True
         user.save()
         token = self.client.post(reverse('login'),
-                                 {'username': self.data['username'], "password": self.data['password']}).data
+                                 {'username': self.user['username'], "password": self.user['password']}).data
 
         self.__authorize_user(token)
 
