@@ -65,26 +65,26 @@ class DetailUserTestCasesUser(TestUserSetUp):
         resp = self.client.get(reverse('user_detail', kwargs={'pk': self.resp.data['data']['_id']}))
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['data'])
-        self.assertEqual(resp.data['data']['username'], self.data['username'])
-        self.assertEqual(resp.data['data']['first_name'], self.data['first_name'])
-        self.assertEqual(resp.data['data']['last_name'], self.data['last_name'])
-        self.assertEqual(resp.data['data']['email'], self.data['email'])
+        self.assertEqual(resp.data['data']['username'], self.user['username'])
+        self.assertEqual(resp.data['data']['first_name'], self.user['first_name'])
+        self.assertEqual(resp.data['data']['last_name'], self.user['last_name'])
+        self.assertEqual(resp.data['data']['email'], self.user['email'])
         self.assertFalse(resp.data['errors'])
 
     def test_02_updated_all_data_of_one_user(self):
-        self.data['is_active'] = True
-        self.data['is_staff'] = True
-        self.data['is_superuser'] = True
-        self.data.pop('password')
-        self.data.pop('confirm_password')
+        self.user['is_active'] = True
+        self.user['is_staff'] = True
+        self.user['is_superuser'] = True
+        self.user.pop('password')
+        self.user.pop('confirm_password')
 
-        resp = self.client.put(reverse('user_detail', kwargs={'pk': self.resp.data['data']['_id']}), self.data)
+        resp = self.client.put(reverse('user_detail', kwargs={'pk': self.resp.data['data']['_id']}), self.user)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['data'])
-        self.assertEqual(resp.data['data']['username'], self.data['username'])
-        self.assertEqual(resp.data['data']['first_name'], self.data['first_name'])
-        self.assertEqual(resp.data['data']['last_name'], self.data['last_name'])
-        self.assertEqual(resp.data['data']['email'], self.data['email'])
+        self.assertEqual(resp.data['data']['username'], self.user['username'])
+        self.assertEqual(resp.data['data']['first_name'], self.user['first_name'])
+        self.assertEqual(resp.data['data']['last_name'], self.user['last_name'])
+        self.assertEqual(resp.data['data']['email'], self.user['email'])
         self.assertTrue(resp.data['data']['is_active'])
         self.assertTrue(resp.data['data']['is_staff'])
         self.assertTrue(resp.data['data']['is_superuser'])
@@ -95,10 +95,10 @@ class DetailUserTestCasesUser(TestUserSetUp):
                                  {'is_active': True})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['data'])
-        self.assertEqual(resp.data['data']['username'], self.data['username'])
-        self.assertEqual(resp.data['data']['first_name'], self.data['first_name'])
-        self.assertEqual(resp.data['data']['last_name'], self.data['last_name'])
-        self.assertEqual(resp.data['data']['email'], self.data['email'])
+        self.assertEqual(resp.data['data']['username'], self.user['username'])
+        self.assertEqual(resp.data['data']['first_name'], self.user['first_name'])
+        self.assertEqual(resp.data['data']['last_name'], self.user['last_name'])
+        self.assertEqual(resp.data['data']['email'], self.user['email'])
         self.assertTrue(resp.data['data']['is_active'])
         self.assertFalse(resp.data['data']['is_staff'])
         self.assertFalse(resp.data['data']['is_superuser'])

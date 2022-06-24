@@ -116,8 +116,8 @@ class TestChangePwdSetUp(LoginUser):
 
     def setUp(self) -> None:
         self.login()
-        self.oldPwd = self.data['password']
-        self.originUser = self.data['username']
+        self.oldPwd = self.user['password']
+        self.originUser = self.user['username']
         self.data = {
             "old_password": self.oldPwd,
             "new_password": self.newPwd,
