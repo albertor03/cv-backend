@@ -55,15 +55,15 @@ class ListRetrieveUpdateDestroyJobTest(TestJobSetUp):
         self.assertEqual(resp.data['data']['position'], self.data['position'])
 
     def test_03_patch_a_job(self):
-        _id = self.resp.data['data']['_id']
-        position = chance.string()
-        resp = self.client.patch(reverse('detail_job', kwargs={'pk': _id}), {'position': position})
+        is_active = chance.boolean()
+        resp = self.client.patch(reverse('detail_job', kwargs={'pk': self.resp.data['data']['_id']}),
+                                 {'is_active': is_active})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['data'])
         self.assertFalse(resp.data['errors'])
-        self.assertEqual(resp.data['data']['position'], position)
+        self.assertEqual(resp.data['data']['is_active'], is_active)
 
-    def test_04_patch_a_job(self):
+    def test_04_list_all_jobs(self):
         how = random.randint(1, 50)
         for x in range(how):
             self.setUp()
@@ -71,11 +71,9 @@ class ListRetrieveUpdateDestroyJobTest(TestJobSetUp):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['data'])
         self.assertFalse(resp.data['errors'])
-        self.assertEqual(resp.data['total_user'], how + 1)
+        self.assertEqual(resp.data['total_jobs'], how + 1)
 
     def test_05_delete_job(self):
-        _id = self.resp.data['data']['_id']
-        resp = self.client.delete(reverse('detail_job', kwargs={'pk': _id}))
+        resp = self.client.delete(reverse('detail_job', kwargs={'pk': self.resp.data['data']['_id']}))
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(resp.data)
-

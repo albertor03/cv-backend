@@ -19,7 +19,7 @@ def generate_user():
         "username": f"{name}{last}",
         "first_name": name,
         "last_name": last,
-        "email": "alberto.zapata.orta@gmail.com",
+        "email": chance.email(),
         "password": pwd,
         "confirm_password": pwd
     }
@@ -32,7 +32,8 @@ def generate_job():
         "start_date": datetime.now(),
         "end_date": datetime.now(),
         "currently": chance.boolean(),
-        "address": chance.country()
+        "address": chance.country(),
+        "description": chance.paragraph(1)
     }
 
 
@@ -42,10 +43,11 @@ def generate_data():
     return {
         "first_name": name,
         "last_name": last,
-        "email": f"{name}{last}@mailinator.com",
+        "email": chance.email(),
         "profession": "Professional Testing",
-        "phone": chance.phone(),
-        "address": chance.city()
+        "phone": chance.phone(formatted=False),
+        "address": chance.city(),
+        "about": chance.paragraph(1)
     }
 
 
@@ -66,17 +68,18 @@ class RegistrationUser(APITestCase):
 
 
 class LoginUser(APITestCase):
-    data = dict()
+    user = dict()
     resp = None
+    data = generate_data()
 
     def login(self):
-        self.data = generate_user()
-        self.resp = self.client.post(reverse('user_create'), self.data)
+        self.user = generate_user()
+        self.resp = self.client.post(reverse('user_create'), self.user)
         user = User.objects.filter(_id=ObjectId(self.resp.data['data']['_id'])).first()
         user.is_active = True
         user.save()
         token = self.client.post(reverse('login'),
-                                 {'username': self.data['username'], "password": self.data['password']}).data
+                                 {'username': self.user['username'], "password": self.user['password']}).data
 
         self.__authorize_user(token)
 
@@ -113,8 +116,8 @@ class TestChangePwdSetUp(LoginUser):
 
     def setUp(self) -> None:
         self.login()
-        self.oldPwd = self.data['password']
-        self.originUser = self.data['username']
+        self.oldPwd = self.user['password']
+        self.originUser = self.user['username']
         self.data = {
             "old_password": self.oldPwd,
             "new_password": self.newPwd,

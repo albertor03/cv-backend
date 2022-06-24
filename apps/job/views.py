@@ -51,11 +51,11 @@ class RetrieveUpdateDestroyJobAPIView(generics.RetrieveUpdateDestroyAPIView):
     data, statusCode = Utilities.bad_responses('bad_request')
 
     def get(self, request, **kwargs):
-        job = self.get_queryset()
         self.data, self.statusCode = Utilities.bad_responses('not_found')
 
-        if job:
-            self.data, self.statusCode = Utilities.ok_response('ok', self.list_serializer_class(job).data)
+        if self.get_queryset():
+            self.data, self.statusCode = Utilities.ok_response('ok',
+                                                               self.list_serializer_class(self.get_queryset()).data)
 
         return Response(self.data, status=self.statusCode)
 
