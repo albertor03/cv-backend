@@ -180,3 +180,12 @@ CLOUDINARY_STORAGE = {
     'API_KEY': os.environ['CLOUDINARY_API_KEY'],
     'API_SECRET': os.environ['CLOUDINARY_API_SECRET']
 }
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ['EMAIL_HOST']
+EMAIL_PORT = int(os.environ['EMAIL_PORT'])
+EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
+EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
+EMAIL_REPLY = os.environ['EMAIL_REPLY']
