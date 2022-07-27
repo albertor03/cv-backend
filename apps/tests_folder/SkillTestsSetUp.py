@@ -12,7 +12,7 @@ class SkillTests(LoginUser):
     date = str()
 
     def setUp(self) -> None:
-        self.login()
+        super().setUp()
         self.skill = self.__generate_skill()
         self.date = datetime.datetime(self.random.randint(2000, datetime.datetime.now().year),
                                       self.random.randint(1, 12), self.random.randint(1, 30))
