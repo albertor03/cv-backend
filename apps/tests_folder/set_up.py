@@ -1,4 +1,4 @@
-from datetime import datetime
+
 import random
 
 from bson import ObjectId
@@ -11,16 +11,7 @@ from rest_framework.test import APITestCase
 from ..users.models import User
 
 
-def generate_job():
-    return {
-        "position": chance.string(),
-        "company_name": chance.string(),
-        "start_date": datetime.now(),
-        "end_date": datetime.now(),
-        "currently": chance.boolean(),
-        "address": chance.country(),
-        "description": chance.paragraph(1)
-    }
+
 
 
 def generate_data():
@@ -45,10 +36,5 @@ class TestInformationSetUp(LoginUser):
         self.resp = self.client.post(reverse('info'), self.data)
 
 
-class TestJobSetUp(LoginUser):
 
-    def setUp(self) -> None:
-        self.login()
-        self.data = generate_job()
-        self.resp = self.client.post(reverse('list_create_job'), self.data)
 
