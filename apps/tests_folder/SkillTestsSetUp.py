@@ -3,7 +3,7 @@ import datetime
 from django.urls import reverse
 from rest_framework import status
 
-from apps.tests_folder.set_up import LoginUser
+from apps.tests_folder.UserTestsSetUp import LoginUser
 
 
 class SkillTests(LoginUser):
