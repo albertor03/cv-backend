@@ -51,30 +51,21 @@ def generate_data():
     }
 
 
-def generate_skill():
-    return {
-        "name": f"{chance.name()} Skill",
-        "percentage": random.uniform(0.0, 100.00)
-    }
-
-
 class RegistrationUser(APITestCase):
-    data = dict()
-    resp = None
-
-    def register(self):
-        self.data = generate_user()
-        self.resp = self.client.post(reverse('user_create'), self.data)
-
-
-class LoginUser(APITestCase):
     user = dict()
     resp = None
-    data = generate_data()
+    chance = chance
+    random = random
 
-    def login(self):
+    def register(self):
         self.user = generate_user()
         self.resp = self.client.post(reverse('user_create'), self.user)
+
+
+class LoginUser(RegistrationUser):
+
+    def login(self):
+        self.register()
         user = User.objects.filter(_id=ObjectId(self.resp.data['data']['_id'])).first()
         user.is_active = True
         user.save()
