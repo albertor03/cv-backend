@@ -1,5 +1,3 @@
-import datetime
-
 from django.urls import reverse
 from rest_framework import status
 
@@ -9,13 +7,10 @@ from apps.tests_folder.UserTestsSetUp import LoginUser
 class SkillTests(LoginUser):
     skill = dict()
     status = status
-    date = str()
 
     def setUp(self) -> None:
         super().setUp()
         self.skill = self.__generate_skill()
-        self.date = datetime.datetime(self.random.randint(2000, datetime.datetime.now().year),
-                                      self.random.randint(1, 12), self.random.randint(1, 30))
 
     def _skill_request(self, request=str()):
         match request:

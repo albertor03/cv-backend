@@ -1,4 +1,5 @@
 import random
+import datetime
 
 from bson import ObjectId
 from chance import chance
@@ -16,11 +17,14 @@ class RegisterUserTestSetUp(APITestCase):
     user = dict()
     superUser = dict()
     credentials = dict()
+    date = str()
     resp = None
 
     def setUp(self) -> None:
         self.user = self.register()
         self.credentials = {'username': self.user['username'], 'password': self.user['password']}
+        self.date = datetime.datetime(self.random.randint(2000, datetime.datetime.now().year),
+                                      self.random.randint(1, 12), self.random.randint(1, 30))
         return super().setUp()
 
     def register(self):
