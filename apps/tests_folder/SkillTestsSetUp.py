@@ -3,7 +3,7 @@ import datetime
 from django.urls import reverse
 from rest_framework import status
 
-from apps.tests_folder.set_up import LoginUser
+from apps.tests_folder.UserTestsSetUp import LoginUser
 
 
 class SkillTests(LoginUser):
@@ -12,7 +12,7 @@ class SkillTests(LoginUser):
     date = str()
 
     def setUp(self) -> None:
-        self.login()
+        super().setUp()
         self.skill = self.__generate_skill()
         self.date = datetime.datetime(self.random.randint(2000, datetime.datetime.now().year),
                                       self.random.randint(1, 12), self.random.randint(1, 30))
