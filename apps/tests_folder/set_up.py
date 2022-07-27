@@ -11,20 +11,6 @@ from rest_framework.test import APITestCase
 from ..users.models import User
 
 
-def generate_user():
-    name = chance.first()
-    last = chance.last()
-    pwd = chance.string()
-    return {
-        "username": f"{name}{last}",
-        "first_name": name,
-        "last_name": last,
-        "email": chance.email(),
-        "password": pwd,
-        "confirm_password": pwd
-    }
-
-
 def generate_job():
     return {
         "position": chance.string(),
@@ -51,39 +37,6 @@ def generate_data():
     }
 
 
-class RegistrationUser(APITestCase):
-    user = dict()
-    resp = None
-    chance = chance
-    random = random
-
-    def register(self):
-        self.user = generate_user()
-        self.resp = self.client.post(reverse('user_create'), self.user)
-
-
-class LoginUser(RegistrationUser):
-
-    def login(self):
-        self.register()
-        user = User.objects.filter(_id=ObjectId(self.resp.data['data']['_id'])).first()
-        user.is_active = True
-        user.save()
-        token = self.client.post(reverse('login'),
-                                 {'username': self.user['username'], "password": self.user['password']}).data
-
-        self.__authorize_user(token)
-
-    def __authorize_user(self, token):
-        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + token['data']['token'])
-
-
-class TestUserSetUp(LoginUser):
-
-    def setUp(self) -> None:
-        self.login()
-
-
 class TestInformationSetUp(LoginUser):
 
     def setUp(self) -> None:
@@ -99,19 +52,3 @@ class TestJobSetUp(LoginUser):
         self.data = generate_job()
         self.resp = self.client.post(reverse('list_create_job'), self.data)
 
-
-class TestChangePwdSetUp(LoginUser):
-    newPwd = chance.string()
-    oldPwd = ""
-    originUser = ""
-
-    def setUp(self) -> None:
-        self.login()
-        self.oldPwd = self.user['password']
-        self.originUser = self.user['username']
-        self.data = {
-            "old_password": self.oldPwd,
-            "new_password": self.newPwd,
-            "confirm_password": self.newPwd
-        }
-        self.resp = self.client.patch(reverse('reset_password_of_user_logged'), self.data)
