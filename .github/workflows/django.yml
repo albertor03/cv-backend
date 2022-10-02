@@ -6,9 +6,20 @@ on:
   pull_request:
     branches: [ "GitHubActions" ]
 
+env:
+  DB_USER: root
+  DB_PASS: example
+  DB_HOST: db-mongo
+  EMAIL_HOST: maildev
+  EMAIL_PORT: 1025
+  EMAIL_HOST_USER: ''
+  EMAIL_HOST_PASSWORD: ''
+  EMAIL_REPLY: 'prueba@mailinator.com'
+  TIMEOUT_TOKEN : 60
+  TIMEOUT_REFRESH_TOKEN : 10
+
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
@@ -36,17 +47,6 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-      env:
-        DB_USER: root
-        DB_PASS: example
-        DB_HOST: db-mongo
-        EMAIL_HOST: maildev
-        EMAIL_PORT: 1025
-        EMAIL_HOST_USER: ''
-        EMAIL_HOST_PASSWORD: ''
-        EMAIL_REPLY: 'prueba@mailinator.com'
-        TIMEOUT_TOKEN : 60
-        TIMEOUT_REFRESH_TOKEN : 10
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
