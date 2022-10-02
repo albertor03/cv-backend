@@ -21,7 +21,7 @@ DATABASES = {
   },
 }
 
-SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'] = timedelta(minutes=int(os.getenv('TIMEOUT_TOKEN', '')))
-SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'] = timedelta(minutes=int(os.getenv('TIMEOUT_REFRESH_TOKEN', '')))
+SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'] = timedelta(minutes=int(os.getenv('TIMEOUT_TOKEN', 60)))
+SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'] = timedelta(minutes=int(os.getenv('TIMEOUT_REFRESH_TOKEN', 10)))
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
