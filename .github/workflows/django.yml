@@ -9,7 +9,7 @@ on:
 env:
   DB_USER: root
   DB_PASS: example
-  DB_HOST: db-mongo
+  DB_HOST: mongo
   EMAIL_HOST: maildev
   EMAIL_PORT: 1025
   EMAIL_HOST_USER: ''
