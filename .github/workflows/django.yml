@@ -30,6 +30,8 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
+      env:
+        ENV: 'prod'
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
