@@ -172,5 +172,5 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 EMAIL_REPLY = os.getenv('EMAIL_REPLY', '')
 
-SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'] = timedelta(minutes=int(os.environ['TIMEOUT_TOKEN'], 60))
-SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'] = timedelta(minutes=int(os.environ['TIMEOUT_REFRESH_TOKEN'], 120))
+SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'] = timedelta(minutes=int(os.getenv('TIMEOUT_TOKEN', 60)))
+SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'] = timedelta(minutes=int(os.getenv('TIMEOUT_REFRESH_TOKEN', 120)))
