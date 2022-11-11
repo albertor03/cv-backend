@@ -11,14 +11,13 @@ env:
 
 jobs:
   mail-service-up:
-    container-job:
-      runs-on: ubuntu-22.04.1
-      services:
-        maildev:
-          image: maildev/maildev
-          ports:
-            - "1080:1080"
-            - "1025:1025"
+    runs-on: ubuntu-22.04.1
+    services:
+      mail:
+        image: maildev/maildev
+        ports:
+          - "1080:1080"
+          - "1025:1025"
 
   build:
     runs-on: ubuntu-22.04.1
