@@ -13,6 +13,7 @@ jobs:
   mail-service-up:
     runs-on: ubuntu-22.04.1
     steps:
+      - uses: actions/checkout@v3
       - name: StarUp Service
         services:
           maildev:
