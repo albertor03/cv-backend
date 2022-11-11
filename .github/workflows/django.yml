@@ -1,56 +1,43 @@
-name: Django CI
+name: CV CI
 
 on:
   push:
-    branches: [ "GitHubActions" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "GitHubActions" ]
 
 env:
-  DB_USER: root
-  DB_PASS: example
-  DB_HOST: 127.0.0.1
-  EMAIL_HOST: 127.0.0.1
-  EMAIL_PORT: 1025
-  EMAIL_HOST_USER: ''
-  EMAIL_HOST_PASSWORD: ''
-  EMAIL_REPLY: 'prueba@mailinator.com'
-  TIMEOUT_TOKEN : 60
-  TIMEOUT_REFRESH_TOKEN : 10
+  python-version: '3.10'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: ['3.10']
-
+  mail-service-up:
     services:
-      mongo:
-        image: mongo
-        env:
-          MONGO_INITDB_ROOT_USERNAME: root
-          MONGO_INITDB_ROOT_PASSWORD: example
-        ports:
-          - 27017:27017
-
       maildev:
         image: maildev/maildev
         ports:
           - "1080:1080"
           - "1025:1025"
 
+  build:
+    runs-on: ubuntu-22.04.1
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+    - uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+        cache-dependency-path: '**/requirements-dev.txt'
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r subdirectory/requirements-dev.txt
+
+  testing:
+    runs-on: ubuntu-22.04.1
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
     - name: Run Tests
-      run: |
-        python manage.py test
+      run: python manage.py test
