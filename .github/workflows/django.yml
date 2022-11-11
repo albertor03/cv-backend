@@ -2,16 +2,17 @@ name: CV CI
 
 on:
   push:
-    branches: [ "main", "GitHubActions" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "GitHubActions" ]
+    types: ["opened", "synchronize"]
 
 env:
   python-version: '3.10'
 
 jobs:
   build:
-    runs-on: ubuntu-22.04.1
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
@@ -26,7 +27,7 @@ jobs:
 
   testing:
     needs: ['build']
-    runs-on: ubuntu-22.04.1
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
