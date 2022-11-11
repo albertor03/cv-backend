@@ -10,14 +10,7 @@ env:
   python-version: '3.10'
 
 jobs:
-  mail-service-up:
-    runs-on: ubuntu-22.04.1
-    services:
-      mail:
-        image: maildev/maildev
-        ports:
-          - "1080:1080"
-          - "1025:1025"
+
 
   build:
     runs-on: ubuntu-22.04.1
