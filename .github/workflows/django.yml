@@ -19,11 +19,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-        cache-dependency-path: '**/requirements.txt'
+        cache-dependency-path: 'requirements.txt'
     - name: Install Dependencies
       run: |
-        python -m pip3 install --upgrade pip
-        pip3 install -r requirements.txt
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
   testing:
     needs: ['build']
