@@ -1,13 +1,10 @@
-import os
-
 from .base import *
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
-environment = f"backend.routes.{os.getenv('ENV', 'prod')}"
+environment = 'prod'
 ROOT_URLCONF = environment
 
 DATABASES = {
@@ -20,8 +17,3 @@ DATABASES = {
       }
   },
 }
-
-SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'] = timedelta(minutes=int(os.getenv('TIMEOUT_TOKEN', 60)))
-SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'] = timedelta(minutes=int(os.getenv('TIMEOUT_REFRESH_TOKEN', 10)))
-
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
