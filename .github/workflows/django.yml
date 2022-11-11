@@ -2,7 +2,7 @@ name: CV CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "GitHubActions" ]
   pull_request:
     branches: [ "GitHubActions" ]
 
