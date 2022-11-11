@@ -25,6 +25,7 @@ jobs:
         pip install -r subdirectory/requirements-dev.txt
 
   testing:
+    needs: ['build']
     runs-on: ubuntu-22.04.1
     steps:
     - uses: actions/checkout@v3
