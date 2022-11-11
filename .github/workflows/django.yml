@@ -40,3 +40,8 @@ jobs:
           pip install -r requirements.txt
       - name: Run Tests
         run: python manage.py test
+        env:
+          DB_NAME: ${{secrets.DB_NAME}}
+          DB_USER: ${{secrets.DB_USER}}
+          DB_PASS: ${{secrets.DB_PASS}}
+          DB_DOMAIN: ${{secrets.DB_DOMAIN}}
