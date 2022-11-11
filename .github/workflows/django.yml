@@ -23,7 +23,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Save built package
-    - uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v3
       with:
         name: dist
         path: dist/
@@ -40,7 +40,7 @@ jobs:
         cache: 'pip'
         cache-dependency-path: '**/requirements.txt'
     - name: Download built package
-    - uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v3
       with:
         name: dist
     - name: Run Tests
