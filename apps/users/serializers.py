@@ -66,9 +66,6 @@ class RestorePasswordSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         user = User.objects.filter(_id=ObjectId(attrs['user_id']))
-        if not user.exists():
-            raise serializers.ValidationError({'data': {}, 'errors': ['User not exists.']})
-
         auth = authenticate(
             username=user.first().username,
             password=attrs['old_password']

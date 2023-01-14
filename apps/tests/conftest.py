@@ -41,7 +41,7 @@ def register(client, generate_user):
 
 
 @pytest.fixture()
-def user(client, generate_user):
+def user(generate_user):
     payload = generate_user
     user = User.objects.create_user(payload.get('username'), payload.get('email'), payload.get('first_name'),
                                     payload.get('last_name'), payload.get('password'))
