@@ -5,5 +5,8 @@ omit =
     */apps.*
     */managers.*
     */admin.*
-    tests/*
+    */tests/*
+    */tests.*
     */auth.*
+    */urls.*
+    */send_email/*
