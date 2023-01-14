@@ -188,4 +188,4 @@ EMAIL_HOST = os.environ['EMAIL_HOST']
 EMAIL_PORT = int(os.environ['EMAIL_PORT'])
 EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
 EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
-EMAIL_REPLY = os.environ['EMAIL_REPLY']
+EMAIL_REPLY = [os.environ['EMAIL_REPLY']]

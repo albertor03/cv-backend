@@ -1,3 +1,5 @@
+import logging
+
 from bson import ObjectId
 
 from django.contrib.auth import authenticate
