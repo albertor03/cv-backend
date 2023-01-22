@@ -1,9 +1,11 @@
 import logging
+import random
 
 import pytest
-from rest_framework.reverse import reverse
 
+from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
+
 from chance import chance
 
 from apps.users.models import User
@@ -21,6 +23,14 @@ def generate_user_data():
         email=chance.email(),
         password=pwd,
         confirm_password=pwd
+    )
+
+
+def generate_skill_data():
+    return dict(
+        name=chance.string(length=10),
+        percentage=float(f"{random.randint(0, 100)}.{random.randint(0, 99)}"),
+        is_active=False
     )
 
 
@@ -65,3 +75,8 @@ def generate_token(client, user):
     user.is_active = False
     user.save()
     return jwt
+
+
+@pytest.fixture()
+def create_skill(login):
+    return login.post(reverse('list_create_skill'), generate_skill_data()).data['data']
