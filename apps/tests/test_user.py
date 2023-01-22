@@ -1,11 +1,9 @@
-import logging
 import os
-
 import pytest
 
-from django.conf import settings
-
 from chance import chance
+
+from django.conf import settings
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.reverse import reverse
 
@@ -15,13 +13,13 @@ from apps.users.views import MakeToken
 
 
 @pytest.mark.django_db
-def test_register_user(client, register):
+def test_register_user(register):
     response = register
     data = response.data['data']
     errors = response.data['errors']
 
-    assert response.status_code == 201
-    assert errors == []
+    assert 201 == response.status_code
+    assert [] == errors
     assert data['_id']
 
 
@@ -53,11 +51,11 @@ def test_failed_register_user_with_different_passwords(client, generate_user):
 
 
 @pytest.mark.django_db
-def test_login_user(client, login):
-    response = login
+def test_login_user(client, user):
+    response = client.post(reverse('login'), user)
     assert response.status_code == 200
     response = response.data
-    assert response['errors'] == []
+    assert [] == response['errors']
     assert 'token' in response['data']
     assert 'refresh' in response['data']
     assert 'exp' in response['data']
@@ -69,10 +67,10 @@ def test_forbidden_login_user(client, generate_user):
     client.post(reverse('user_create'), payload)
 
     response = client.post(reverse('login'), dict(username=payload['username'], password=payload['password']))
-    assert response.status_code == 403
+    assert 403 == response.status_code
     response = response.data
-    assert response['errors'] == ['Inactive user.']
-    assert response['data'] == {}
+    assert ['Inactive user.'] == response['errors']
+    assert {} == response['data']
 
 
 @pytest.mark.django_db
@@ -80,18 +78,18 @@ def test_login_invalid_credentials(client, user):
     payload = user
 
     response = client.post(reverse('login'), dict(username=payload['username'], password='password'))
-    assert response.status_code == 400
+    assert 400 == response.status_code
     response = response.data
-    assert response['errors'] == ['Invalid credentials.']
-    assert response['data'] == {}
+    assert ['Invalid credentials.'] == response['errors']
+    assert {} == response['data']
 
 
 @pytest.mark.django_db
-def test_logout(client, login):
-    response = client.get(reverse('logout'))
-    assert response.status_code == 200
-    assert response.data['errors'] == []
-    assert response.data['data'] == 'Successfully logged out.'
+def test_logout(login):
+    response = login.get(reverse('logout'))
+    assert 200 == response.status_code
+    assert [] == response.data['errors']
+    assert 'Successfully logged out.' == response.data['data']
 
 
 @pytest.mark.django_db
@@ -99,16 +97,16 @@ def test_invalid_logout(client, user):
     client.post(reverse('login'), user)
     response = client.get(reverse('logout'))
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {'wwwwww'}")
-    assert response.status_code == 401
+    assert 401 == response.status_code
 
 
 @pytest.mark.django_db
 def test_active_user(client, generate_token):
     jwt = generate_token
     response = client.patch(reverse('active_user', kwargs={'token': jwt['token']}))
-    assert response.status_code == 200
-    assert response.data['data'] == 'User active successfully.'
-    assert response.data['errors'] == []
+    assert 200 == response.status_code
+    assert 'User active successfully.' == response.data['data']
+    assert [] == response.data['errors']
 
 
 @pytest.mark.django_db
@@ -116,46 +114,46 @@ def test_active_activated_user(client, generate_token):
     jwt = generate_token
     client.patch(reverse('active_user', kwargs={'token': jwt['token']}))
     response = client.patch(reverse('active_user', kwargs={'token': jwt['token']}))
-    assert response.status_code == 400
-    assert response.data['data'] == ''
-    assert response.data['errors'] == ['The user is already activated.']
+    assert 400 == response.status_code == 400
+    assert '' == response.data['data']
+    assert ['The user is already activated.'] == response.data['errors']
 
 
 @pytest.mark.django_db
-def test_send_activate_link(client, login):
-    resp = client.post(reverse('user_create'), generate_user_data())
-    response = client.post(reverse('send-activate-user-link'), dict(username=resp.data['data']['username']))
+def test_send_activate_link(login):
+    resp = login.post(reverse('user_create'), generate_user_data())
+    response = login.post(reverse('send-activate-user-link'), dict(username=resp.data['data']['username']))
     assert 200 == response.status_code
     assert 'User activation link sent successfully.' == response.data['data']
     assert [] == response.data['errors']
 
 
 @pytest.mark.django_db
-def test_send_activation_link_to_a_user_does_not_exist(client, login):
-    response = client.post(reverse('send-activate-user-link'), dict(username=generate_user_data()['username']))
+def test_send_activation_link_to_a_user_does_not_exist(login):
+    response = login.post(reverse('send-activate-user-link'), dict(username=generate_user_data()['username']))
     assert 400 == response.status_code
     assert {} == response.data['data']
     assert 'User not exist.' == ErrorDetail(response.data['errors'][0])
 
 
 @pytest.mark.django_db
-def test_send_activation_link_to_an_activated_user(client, login):
-    new_user = client.post(reverse('user_create'), generate_user_data()).data['data']
+def test_send_activation_link_to_an_activated_user(login):
+    new_user = login.post(reverse('user_create'), generate_user_data()).data['data']
     user = User.objects.filter(username=new_user['username']).first()
     user.is_active = True
     user.save()
 
-    response = client.post(reverse('send-activate-user-link'), dict(username=new_user['username']))
+    response = login.post(reverse('send-activate-user-link'), dict(username=new_user['username']))
     assert 400 == response.status_code
     assert {} == response.data['data']
     assert 'The user is already activated.' == ErrorDetail(response.data['errors'][0])
 
 
 @pytest.mark.django_db
-def test_failed_send_activate_link(client, login):
-    resp = client.post(reverse('user_create'), generate_user_data())
+def test_failed_send_activate_link(login):
+    resp = login.post(reverse('user_create'), generate_user_data())
     settings.EMAIL_REPLY = 121212
-    response = client.post(reverse('send-activate-user-link'), dict(username=resp.data['data']['username']))
+    response = login.post(reverse('send-activate-user-link'), dict(username=resp.data['data']['username']))
     settings.EMAIL_REPLY = [os.environ['EMAIL_REPLY']]
     assert 424 == response.status_code
     assert '' == response.data['data']
@@ -163,82 +161,81 @@ def test_failed_send_activate_link(client, login):
 
 
 @pytest.mark.django_db
-def test_get_all_user(client, login):
-    response = client.get(reverse('all_users'))
-    assert response.status_code == 200
-    assert response.data['data'] != []
-    assert response.data['errors'] == []
-    assert response.data['total_users'] > 0
+def test_get_all_user(login):
+    response = login.get(reverse('all_users'))
+    assert 200 == response.status_code
+    assert [] != response.data['data']
+    assert [] == response.data['errors']
+    assert 0 < response.data['total_users']
 
 
 @pytest.mark.django_db
-def test_get_a_user(client, login):
-    _id = client.get(reverse('all_users')).data['data'][0]['_id']
-    response = client.get(reverse('user_detail', kwargs={'pk': _id}))
-    assert response.status_code == 200
+def test_get_a_user(login):
+    _id = login.get(reverse('all_users')).data['data'][0]['_id']
+    response = login.get(reverse('user_detail', kwargs={'pk': _id}))
+    assert 200 == response.status_code
     assert _id == response.data['data']['_id']
-    assert response.data['errors'] == []
+    assert [] == response.data['errors']
 
 
 @pytest.mark.django_db
-def test_get_a_user_do_not_exist(client, login):
+def test_get_a_user_do_not_exist(login):
     _id = '62b5d8db1952833dd22102dd'
-    response = client.get(reverse('user_detail', kwargs={'pk': _id}))
+    response = login.get(reverse('user_detail', kwargs={'pk': _id}))
     assert 404 == response.status_code
     assert {} == response.data['data']
     assert ["Information not found."] == response.data['errors']
 
 
 @pytest.mark.django_db
-def test_update_an_user(client, login):
-    new_user = client.post(reverse('user_create'), generate_user_data()).data['data']
+def test_update_an_user(login):
+    new_user = login.post(reverse('user_create'), generate_user_data()).data['data']
     _id = new_user['_id']
-    new_user['is_active'] = True
-    new_user['is_staff'] = True
-    new_user['is_superuser'] = True
-    new_user.pop('last_login')
-    new_user.pop('created_at')
-    new_user.pop('updated_at')
-    new_user.pop('_id')
-    response = client.put(reverse('user_detail', kwargs={'pk': _id}), new_user)
-    assert response.status_code == 200
+    for x in ['is_active', 'is_staff', 'is_superuser']:
+        new_user[x] = True
+
+    for x in ['last_login', 'created_at', 'updated_at', '_id']:
+        new_user.pop(x)
+
+    response = login.put(reverse('user_detail', kwargs={'pk': _id}), new_user)
+    assert 200 == response.status_code
     assert _id == response.data['data']['_id']
     assert response.data['data']['is_active']
     assert response.data['data']['is_staff']
     assert response.data['data']['is_superuser']
-    assert response.data['errors'] == []
+    assert [] == response.data['errors']
 
 
 @pytest.mark.django_db
-def test_update_a_user_do_not_exist(client, login):
-    new_user = client.post(reverse('user_create'), generate_user_data()).data['data']
+def test_update_a_user_do_not_exist(login):
+    new_user = login.post(reverse('user_create'), generate_user_data()).data['data']
     _id = '62b5d8db1952833dd22102dd'
     fields = ['username', 'is_active', 'is_staff', 'is_superuser', 'last_login', 'created_at', 'updated_at']
     [new_user.pop(x) for x in fields]
-    response = client.put(reverse('user_detail', kwargs={'pk': _id}), new_user)
-    assert response.status_code == 404
+    response = login.put(reverse('user_detail', kwargs={'pk': _id}), new_user)
+    assert 404 == response.status_code
     assert {} == response.data['data']
     assert ["Information not found."] == response.data['errors']
 
 
 @pytest.mark.django_db
-def test_update_a_user_without_required_field(client, login):
-    new_user = client.post(reverse('user_create'), generate_user_data()).data['data']
+def test_update_a_user_without_required_field(login):
+    new_user = login.post(reverse('user_create'), generate_user_data()).data['data']
     _id = new_user['_id']
     fields = ['username', 'is_active', 'is_staff', 'is_superuser', 'last_login', 'created_at', 'updated_at']
     [new_user.pop(x) for x in fields]
-    response = client.put(reverse('user_detail', kwargs={'pk': _id}), new_user)
-    assert response.status_code == 400
+    response = login.put(reverse('user_detail', kwargs={'pk': _id}), new_user)
+    assert 400 == response.status_code
     assert {} == response.data['data']
     assert ["Bad request."] == response.data['errors']
 
 
 @pytest.mark.django_db
-def test_patch_an_user(client, login):
-    new_user = client.post(reverse('user_create'), generate_user_data()).data['data']
+def test_patch_an_user(login):
+    new_user = login.post(reverse('user_create'), generate_user_data()).data['data']
     _id = new_user['_id']
     new_email = generate_user_data()['email']
-    response = client.patch(reverse('user_detail', kwargs={'pk': _id}), dict(email=new_email))
+    response = login.patch(reverse('user_detail', kwargs={'pk': _id}), dict(email=new_email))
     assert 200 == response.status_code
     assert _id == response.data['data']['_id']
     assert new_email == response.data['data']['email']
@@ -246,28 +243,28 @@ def test_patch_an_user(client, login):
 
 
 @pytest.mark.django_db
-def test_patch_a_user_do_not_exist(client, login):
+def test_patch_a_user_do_not_exist(login):
     _id = '62b5d8db1952833dd22102dd'
     new_email = generate_user_data()['email']
-    response = client.patch(reverse('user_detail', kwargs={'pk': _id}), dict(email=new_email))
+    response = login.patch(reverse('user_detail', kwargs={'pk': _id}), dict(email=new_email))
     assert 404 == response.status_code
     assert {} == response.data['data']
     assert ["Information not found."] == response.data['errors']
 
 
 @pytest.mark.django_db
-def test_delete_an_user(client, login):
-    new_user = client.post(reverse('user_create'), generate_user_data()).data['data']
+def test_delete_an_user(login):
+    new_user = login.post(reverse('user_create'), generate_user_data()).data['data']
     _id = new_user['_id']
-    response = client.delete(reverse('user_detail', kwargs={'pk': _id}))
+    response = login.delete(reverse('user_detail', kwargs={'pk': _id}))
     assert 204 == response.status_code
     assert {} == response.data['data']
     assert [] == response.data['errors']
 
 
 @pytest.mark.django_db
-def test_delete_a_user_do_not_exist(client, login):
-    response = client.delete(reverse('user_detail', kwargs={'pk': '62b5d8db1952833dd22102dd'}))
+def test_delete_a_user_do_not_exist(login):
+    response = login.delete(reverse('user_detail', kwargs={'pk': '62b5d8db1952833dd22102dd'}))
     assert 404 == response.status_code
     assert {} == response.data['data']
     assert ["Information not found."] == response.data['errors']
@@ -318,12 +315,12 @@ def test_update_password_with_mismatched_passwords(client, user):
 
 
 @pytest.mark.django_db
-def test_send_reset_password_link(client, login):
-    new_user = client.post(reverse('user_create'), generate_user_data()).data['data']
+def test_send_reset_password_link(login):
+    new_user = login.post(reverse('user_create'), generate_user_data()).data['data']
     user = User.objects.filter(username=new_user['username']).first()
     user.is_active = True
     user.save()
-    response = client.patch(reverse('send-reset-password-link'), dict(username=new_user['username']))
+    response = login.patch(reverse('send-reset-password-link'), dict(username=new_user['username']))
 
     assert 200 == response.status_code
     assert 'Reset password link sent successfully.' == response.data['data']
@@ -331,13 +328,13 @@ def test_send_reset_password_link(client, login):
 
 
 @pytest.mark.django_db
-def test_failed_send_password_reset_link(client, login):
-    new_user = client.post(reverse('user_create'), generate_user_data()).data['data']
+def test_failed_send_password_reset_link(login):
+    new_user = login.post(reverse('user_create'), generate_user_data()).data['data']
     user = User.objects.filter(username=new_user['username']).first()
     user.is_active = True
     user.save()
     settings.EMAIL_REPLY = 121212
-    response = client.patch(reverse('send-reset-password-link'), dict(username=new_user['username']))
+    response = login.patch(reverse('send-reset-password-link'), dict(username=new_user['username']))
     settings.EMAIL_REPLY = [os.environ['EMAIL_REPLY']]
 
     assert 424 == response.status_code
@@ -346,8 +343,8 @@ def test_failed_send_password_reset_link(client, login):
 
 
 @pytest.mark.django_db
-def test_send_password_reset_link_to_non_existent_user(client, login):
-    response = client.patch(reverse('send-reset-password-link'), dict(username=generate_user_data()['username']))
+def test_send_password_reset_link_to_non_existent_user(login):
+    response = login.patch(reverse('send-reset-password-link'), dict(username=generate_user_data()['username']))
 
     assert 400 == response.status_code
     assert {} == response.data['data']
@@ -355,9 +352,9 @@ def test_send_password_reset_link_to_non_existent_user(client, login):
 
 
 @pytest.mark.django_db
-def test_send_password_reset_link_to_inactive_user(client, login):
-    new_user = client.post(reverse('user_create'), generate_user_data()).data['data']
-    response = client.patch(reverse('send-reset-password-link'), dict(username=new_user['username']))
+def test_send_password_reset_link_to_inactive_user(login):
+    new_user = login.post(reverse('user_create'), generate_user_data()).data['data']
+    response = login.patch(reverse('send-reset-password-link'), dict(username=new_user['username']))
 
     assert 400 == response.status_code
     assert {} == response.data['data']

@@ -53,9 +53,8 @@ def user(generate_user):
 
 @pytest.fixture()
 def login(client, user):
-    login = client.post(reverse('login'), user)
-    client.credentials(HTTP_AUTHORIZATION=f"Bearer {login.data['data']['token']}")
-    return login
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {client.post(reverse('login'), user).data['data']['token']}")
+    return client
 
 
 @pytest.fixture()
