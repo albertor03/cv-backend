@@ -1,5 +1,3 @@
-import logging
-
 import jwt
 
 from bson import ObjectId
@@ -9,12 +7,12 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth import authenticate
 
-from rest_framework import status
-from rest_framework import generics
+from rest_framework import status, generics
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.reverse import reverse
+from rest_framework.exceptions import NotFound
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -76,54 +74,41 @@ class AllUserApiView(generics.ListAPIView):
 
 class DetailUserApiView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserDetailSerializer
+    queryset = serializer_class.Meta.model.objects.all()
     data, statusCode = Utilities.bad_responses()
 
     def get_queryset(self, *args, **kwargs):
         queryset = self.serializer_class.Meta.model.objects.filter(_id=ObjectId(self.kwargs['pk'])).first()
+        if not queryset:
+            raise NotFound({'data': {}, 'errors': ['User not exist.']})
         return queryset
 
     def get(self, request, pk=None, **kwargs):
         user = self.get_queryset()
-
-        if user:
-            self.data, self.statusCode = Utilities.ok_response(
-                'ok', self.serializer_class(user, context={'request': request}).data)
-        else:
-            self.data, self.statusCode = Utilities.bad_responses('not_found')
+        self.data, self.statusCode = Utilities.ok_response('ok', self.serializer_class(
+            user, context={'request': request}).data)
 
         return Response(self.data, status=self.statusCode)
 
     def put(self, request, pk=None, **kwargs):
-        user = self.get_queryset()
-        if user:
-            serializer = UserSerializer(user, request.data)
-            if serializer.is_valid():
-                serializer.save()
-                self.data, self.statusCode = Utilities.ok_response(serializer=serializer.data)
-        else:
-            self.data, self.statusCode = Utilities.bad_responses('not_found')
+        serializer = UserSerializer(self.get_queryset(), request.data)
+        if serializer.is_valid():
+            serializer.save()
+            self.data, self.statusCode = Utilities.ok_response(serializer=serializer.data)
 
         return Response(self.data, status=self.statusCode)
 
     def patch(self, request, pk=None, **kwargs):
-        user = self.get_queryset()
-        if user:
-            serializer = UserSerializer(user, request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                self.data, self.statusCode = Utilities.ok_response(serializer=serializer.data)
-        else:
-            self.data, self.statusCode = Utilities.bad_responses('not_found')
+        serializer = UserSerializer(self.get_queryset(), request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            self.data, self.statusCode = Utilities.ok_response(serializer=serializer.data)
 
         return Response(self.data, status=self.statusCode)
 
     def delete(self, request, pk=None, **kwargs):
-        user = self.get_queryset()
-        if user:
-            user.delete()
-            self.data, self.statusCode = Utilities.ok_response('patch')
-        else:
-            self.data, self.statusCode = Utilities.bad_responses('not_found')
+        self.get_queryset().delete()
+        self.data, self.statusCode = Utilities.ok_response('patch')
 
         return Response(self.data, self.statusCode)
 

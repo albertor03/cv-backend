@@ -7,16 +7,6 @@ from apps.tests.conftest import generate_skill_data
 
 
 @pytest.mark.django_db
-def test_get_all_skill(login):
-    response = login.get(reverse('list_create_skill'))
-    errors = response.data['errors']
-
-    assert 200 == response.status_code
-    assert [] == errors
-    assert 0 <= response.data['total_skills']
-
-
-@pytest.mark.django_db
 def test_create_a_skill(login):
     skill = generate_skill_data()
     response = login.post(reverse('list_create_skill'), skill)
@@ -28,6 +18,17 @@ def test_create_a_skill(login):
     assert skill['name'] == data['name']
     assert skill['percentage'] == data['percentage']
     assert 'total_skills' not in data
+
+
+@pytest.mark.django_db
+def test_get_all_skill(login):
+    test_create_a_skill(login)
+    response = login.get(reverse('list_create_skill'))
+    errors = response.data['errors']
+
+    assert 200 == response.status_code
+    assert [] == errors
+    assert 0 <= response.data['total_skills']
 
 
 @pytest.mark.django_db

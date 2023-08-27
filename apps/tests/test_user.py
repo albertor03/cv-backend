@@ -131,7 +131,7 @@ def test_send_activate_link(login):
 @pytest.mark.django_db
 def test_send_activation_link_to_a_user_does_not_exist(login):
     response = login.post(reverse('send-activate-user-link'), dict(username=generate_user_data()['username']))
-    assert 400 == response.status_code
+    assert 404 == response.status_code
     assert {} == response.data['data']
     assert 'User not exist.' == ErrorDetail(response.data['errors'][0])
 
@@ -184,7 +184,7 @@ def test_get_a_user_do_not_exist(login):
     response = login.get(reverse('user_detail', kwargs={'pk': _id}))
     assert 404 == response.status_code
     assert {} == response.data['data']
-    assert ["Information not found."] == response.data['errors']
+    assert 'User not exist.' == ErrorDetail(response.data['errors'][0])
 
 
 @pytest.mark.django_db
@@ -215,7 +215,7 @@ def test_update_a_user_do_not_exist(login):
     response = login.put(reverse('user_detail', kwargs={'pk': _id}), new_user)
     assert 404 == response.status_code
     assert {} == response.data['data']
-    assert ["Information not found."] == response.data['errors']
+    assert 'User not exist.' == ErrorDetail(response.data['errors'][0])
 
 
 @pytest.mark.django_db
@@ -249,7 +249,7 @@ def test_patch_a_user_do_not_exist(login):
     response = login.patch(reverse('user_detail', kwargs={'pk': _id}), dict(email=new_email))
     assert 404 == response.status_code
     assert {} == response.data['data']
-    assert ["Information not found."] == response.data['errors']
+    assert 'User not exist.' == ErrorDetail(response.data['errors'][0])
 
 
 @pytest.mark.django_db
@@ -267,7 +267,7 @@ def test_delete_a_user_do_not_exist(login):
     response = login.delete(reverse('user_detail', kwargs={'pk': '62b5d8db1952833dd22102dd'}))
     assert 404 == response.status_code
     assert {} == response.data['data']
-    assert ["Information not found."] == response.data['errors']
+    assert 'User not exist.' == ErrorDetail(response.data['errors'][0])
 
 
 @pytest.mark.django_db
@@ -346,7 +346,7 @@ def test_failed_send_password_reset_link(login):
 def test_send_password_reset_link_to_non_existent_user(login):
     response = login.patch(reverse('send-reset-password-link'), dict(username=generate_user_data()['username']))
 
-    assert 400 == response.status_code
+    assert 404 == response.status_code
     assert {} == response.data['data']
     assert 'User not exist.' == ErrorDetail(response.data['errors'][0])
 
