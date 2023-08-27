@@ -6,3 +6,5 @@ backend/media/*
 .idea/
 .coverage
 /.coverage
+./apps/htmlcov
+./apps/.coverage
