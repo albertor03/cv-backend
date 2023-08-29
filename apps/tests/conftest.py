@@ -1,4 +1,4 @@
-import logging
+import datetime
 import random
 
 import pytest
@@ -32,6 +32,32 @@ def generate_skill_data():
         percentage=float(f"{random.randint(0, 100)}.{random.randint(0, 99)}"),
         is_active=False
     )
+
+
+def generate_job_data(data_type):
+    data = dict(
+        position=chance.string(length=10),
+        company_name=chance.string(length=10),
+        start_date=datetime.datetime.now() - datetime.timedelta(days=60),
+        end_date=datetime.datetime.now() - datetime.timedelta(days=30),
+        currently=chance.pickone([True, False]),
+        address=chance.city(),
+        description=chance.string(length=150),
+    )
+    match data_type:
+        case "end":
+            data.pop("currently")
+        case 'currently':
+            data.pop("end_date")
+        case "without":
+            data.pop("currently")
+            data.pop("end_date")
+        case 'active':
+            data['is_active'] = True
+        case 'less':
+            data['end_date'] -= datetime.timedelta(days=60)
+
+    return data
 
 
 @pytest.fixture()
@@ -80,3 +106,8 @@ def generate_token(client, user):
 @pytest.fixture()
 def create_skill(login):
     return login.post(reverse('list_create_skill'), generate_skill_data()).data['data']
+
+
+@pytest.fixture()
+def create_job(login):
+    return login.post(reverse('list_create_job'), generate_job_data("default")).data['data']
