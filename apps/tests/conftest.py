@@ -61,22 +61,22 @@ def generate_job_data(data_type):
 
 
 def generate_info_data():
+    social = dict(
+                name=chance.string(pool='abcdef8', minimum=5, maximum=20),
+                link=chance.url(exts=[".com"])
+            )
     return dict(
         first_name=chance.first(),
         last_name=chance.last(),
-        profession=chance.sentence(),
-        about=chance.paragraph(sentences=20),
+        profession=chance.string(pool='abcdef8', minimum=5, maximum=20),
+        about=chance.paragraph(sentences=1),
         profile_photo=chance.filepath(),
         contact_info=dict(
             email=chance.email(),
             phone=chance.phone(formatted=False),
             address=chance.country()
         ),
-        contact_social=list[dict(
-                name=chance.string(pool='abcdef8', minimum=5, maximum=20),
-                link=chance.url(exts=[".com"])
-            )
-        ]
+        contact_social=[social]
     )
 
 
@@ -135,4 +135,4 @@ def create_job(login):
 
 @pytest.fixture()
 def create_information(login):
-    return login.post(reverse('info'), generate_info_data()).data['data']
+    return login.post(reverse('info'), generate_info_data(), format='json').data['data']
