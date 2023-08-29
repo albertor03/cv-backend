@@ -100,7 +100,7 @@ def test_08_delete_an_invalid_job(login):
 
 
 @pytest.mark.django_db
-def test_09_get_all_job(login):
+def test_09_get_all_job(login, create_job):
     response = login.get(reverse('list_create_job'))
     assert status.HTTP_200_OK == response.status_code
     assert response.data['data']

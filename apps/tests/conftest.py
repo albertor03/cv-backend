@@ -60,6 +60,26 @@ def generate_job_data(data_type):
     return data
 
 
+def generate_info_data():
+    return dict(
+        first_name=chance.first(),
+        last_name=chance.last(),
+        profession=chance.sentence(),
+        about=chance.paragraph(sentences=20),
+        profile_photo=chance.filepath(),
+        contact_info=dict(
+            email=chance.email(),
+            phone=chance.phone(formatted=False),
+            address=chance.country()
+        ),
+        contact_social=list[dict(
+                name=chance.string(pool='abcdef8', minimum=5, maximum=20),
+                link=chance.url(exts=[".com"])
+            )
+        ]
+    )
+
+
 @pytest.fixture()
 def generate_user():
     return generate_user_data()
@@ -111,3 +131,8 @@ def create_skill(login):
 @pytest.fixture()
 def create_job(login):
     return login.post(reverse('list_create_job'), generate_job_data("default")).data['data']
+
+
+@pytest.fixture()
+def create_information(login):
+    return login.post(reverse('info'), generate_info_data()).data['data']
