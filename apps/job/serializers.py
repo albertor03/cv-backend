@@ -9,6 +9,13 @@ class CreateJobSerializer(serializers.ModelSerializer):
         model = JobModels
         exclude = ['created_at', 'updated_at']
 
+    def validate(self, attrs):
+        if 'end_date' in attrs and attrs['end_date'] is not None:
+            if attrs['end_date'] < attrs['start_date']:
+                raise serializers.ValidationError(detail={'data': {}, 'errors': ['The end date field must not be less than the start date field.']})
+
+        return attrs
+
 
 class ListJobSerializer(serializers.ModelSerializer):
 

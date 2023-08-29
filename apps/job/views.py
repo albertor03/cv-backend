@@ -28,12 +28,10 @@ class ListCreateJobAPIView(generics.ListCreateAPIView):
         return Response(self.data, status=self.statusCode)
 
     def post(self, request, *args, **kwargs):
+        self.data.clear()
         serializer = CreateJobSerializer(data=request.data)
 
-        if self.data.get('total_jobs', False):
-            self.data.pop("total_jobs")
-
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             self.data, self.statusCode = Utilities.ok_response('post', serializer.data)
 
