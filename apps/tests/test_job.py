@@ -92,7 +92,7 @@ def test_07_delete_a_job(login, create_job):
 
 
 @pytest.mark.django_db
-def test_08_delete_an_invalid_job(login, create_job):
+def test_08_delete_an_invalid_job(login):
     response = login.delete(reverse('detail_job', kwargs={'pk': '62b5d8db1952833dd22102dd'}))
     assert status.HTTP_404_NOT_FOUND == response.status_code
     assert {} == response.data['data']
@@ -100,7 +100,7 @@ def test_08_delete_an_invalid_job(login, create_job):
 
 
 @pytest.mark.django_db
-def test_09_get_all_job(login, create_job):
+def test_09_get_all_job(login):
     response = login.get(reverse('list_create_job'))
     assert status.HTTP_200_OK == response.status_code
     assert response.data['data']
