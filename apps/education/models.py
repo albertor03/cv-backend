@@ -11,7 +11,7 @@ class EducationModels(models.Model):
     start_date = models.DateField('Start date')
     end_date = models.DateField('End date', null=True, blank=True)
     currently = models.BooleanField('Currently', default=False)
-    certificate = models.FileField(upload_to='education', null=True, blank=True, storage=RawMediaCloudinaryStorage())
+    certificate = models.TextField()
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField('Created at', auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField('Updated at', auto_now=True, auto_now_add=False)
@@ -23,8 +23,3 @@ class EducationModels(models.Model):
 
     def __str__(self):
         return f"{self.degree} in {self.collage}"
-
-    def delete(self, using=None, keep_parents=False):
-        if self.certificate.name:
-            self.certificate.storage.delete(self.certificate.name)
-        super().delete()

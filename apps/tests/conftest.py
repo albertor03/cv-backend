@@ -1,3 +1,4 @@
+import base64
 import datetime
 import random
 
@@ -80,6 +81,27 @@ def generate_info_data():
     )
 
 
+def generate_education_data(data_type='default'):
+    start_date = datetime.datetime.now() - datetime.timedelta(days=60)
+    end_date = datetime.datetime.now() - datetime.timedelta(days=30)
+    data = dict(
+        degree=chance.string(length=10),
+        collage=chance.string(length=10),
+        start_date=start_date.strftime("%Y-%m-%d"),
+        end_date=end_date.strftime("%Y-%m-%d"),
+        currently=chance.pickone([True, False]),
+        certificate=base64.b64encode(chance.string(length=10).encode()).decode('utf-8'),
+        is_active=chance.pickone([True, False])
+    )
+    match data_type:
+        case 'base64':
+            data['certificate'] = "Hola esto es una prueba"
+        case 'less':
+            date = datetime.datetime.now() - datetime.timedelta(days=100)
+            data['end_date'] = date.strftime("%Y-%m-%d")
+    return data
+
+
 @pytest.fixture()
 def generate_user():
     return generate_user_data()
@@ -136,3 +158,10 @@ def create_job(login):
 @pytest.fixture()
 def create_information(login):
     return login.post(reverse('info'), generate_info_data(), format='json').data['data']
+
+
+@pytest.fixture()
+def create_education(login):
+    data = login.post(reverse('list_create_education'), generate_education_data(), format='json').data
+    print(data)
+    return data['data']
