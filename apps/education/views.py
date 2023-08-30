@@ -1,25 +1,20 @@
-from bson import ObjectId
-
 from rest_framework import status
 from rest_framework import generics
 from rest_framework.response import Response
 
 from .serializers import (
-    EducationSerializer,
-    CreateEducationSerializer,
-    EducationModels, UpdateEducationSerializer
+    EducationSerializer
 )
 from ..Utilities.utilities import Utilities
 
 
 class ListCreateEducationAPIView(generics.ListCreateAPIView):
-    serializer_class = CreateEducationSerializer
-    list_serializer_class = EducationSerializer
+    serializer_class = EducationSerializer
     data, statusCode = Utilities.bad_responses('bad_request')
 
     def get(self, request, **kwargs):
-        serializer = self.list_serializer_class(self.get_serializer().Meta.model.objects.all(),
-                                                many=True, context={'request': request})
+        serializer = self.serializer_class(self.get_serializer().Meta.model.objects.all(),
+                                           many=True, context={'request': request})
 
         self.data, self.statusCode = Utilities.ok_response('ok', serializer.data)
         self.data['total_educations'] = len(serializer.data)
@@ -27,68 +22,49 @@ class ListCreateEducationAPIView(generics.ListCreateAPIView):
         return Response(self.data, status=self.statusCode)
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
+        self.data.clear()
+        serializer = self.serializer_class(data=request.data, context={'request': request})
 
-        if self.data.get('total_educations', False):
-            self.data.pop("total_educations")
-
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             education = serializer.save()
             self.data, self.statusCode = Utilities.ok_response(
-                'post', self.list_serializer_class(education, context={'request': request}).data)
+                'post', self.serializer_class(education, context={'request': request}).data)
 
         return Response(self.data, self.statusCode)
 
 
 class RetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-
-    def get_queryset(self, *args, **kwargs):
-        queryset = EducationModels.objects.filter(_id=ObjectId(self.kwargs["pk"])).first()
-        return queryset
-
-    serializer_class = CreateEducationSerializer
-    list_serializer_class = EducationSerializer
-    update_serializer_class = UpdateEducationSerializer
+    serializer_class = EducationSerializer
     data, statusCode = Utilities.bad_responses('bad_request')
 
     def get(self, request, **kwargs):
-        education = self.get_queryset()
-        self.data, self.statusCode = Utilities.bad_responses('not_found')
+        serializer = self.serializer_class().get_query(self.kwargs["pk"])
 
-        if education:
+        if serializer:
             self.data, self.statusCode = Utilities.ok_response(
-                'ok', self.list_serializer_class(education, context={'request': request}).data)
+                'ok', self.serializer_class(serializer, context={'request': request}).data)
 
         return Response(self.data, status=self.statusCode)
 
     def put(self, request, **kwargs):
-        education = self.get_queryset()
-        self.data, self.statusCode = Utilities.bad_responses('not_found')
-
-        if education:
-            serializer = self.update_serializer_class(education, data=request.data, context={'request': request})
-            if serializer.is_valid():
-                serializer.save()
-                self.data, self.statusCode = Utilities.ok_response('ok', serializer.data)
+        data = self.serializer_class().get_query(self.kwargs["pk"])
+        serializer = self.serializer_class(data, data=request.data, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            self.data, self.statusCode = Utilities.ok_response('ok', serializer.data)
 
         return Response(self.data, status=self.statusCode)
 
     def patch(self, request, **kwargs):
-        education = self.get_queryset()
-        self.data, self.statusCode = Utilities.bad_responses('not_found')
-        if education:
-            serializer = self.list_serializer_class(education, request.data, partial=True, context={'request': request})
-            if serializer.is_valid():
-                serializer.save()
-                self.data, self.statusCode = Utilities.ok_response('ok', serializer.data)
+        data = self.serializer_class().get_query(self.kwargs["pk"])
+        serializer = self.serializer_class(data, request.data, partial=True, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            self.data, self.statusCode = Utilities.ok_response('ok', serializer.data)
 
         return Response(self.data, status=self.statusCode)
 
     def delete(self, request, **kwargs):
-        education = self.get_queryset()
-        self.data, self.statusCode = Utilities.bad_responses('not_found')
-        if education:
-            education.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        return Response(self.data, status=self.statusCode)
+        data = self.serializer_class().get_query(self.kwargs["pk"])
+        data.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
