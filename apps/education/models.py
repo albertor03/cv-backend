@@ -1,10 +1,7 @@
 from djongo import models
 
-from cloudinary_storage.storage import RawMediaCloudinaryStorage
-
 
 class EducationModels(models.Model):
-
     _id = models.ObjectIdField()
     degree = models.CharField('Degree', max_length=100)
     collage = models.CharField('Collage', max_length=100)
