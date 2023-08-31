@@ -26,10 +26,8 @@ class ListCreateSkillAPIView(generics.ListCreateAPIView):
         return Response(self.data, status=self.statusCode)
 
     def post(self, request, *args, **kwargs):
+        self.data.clear()
         serializer = self.serializer_class(data=request.data)
-
-        if self.data.get('total_skills', False):
-            self.data.pop("total_skills")
 
         if serializer.is_valid():
             self.data, self.statusCode = Utilities.ok_response(

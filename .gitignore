@@ -4,3 +4,7 @@ backend/routes/local.py
 backend/settings/local.py
 backend/media/*
 .idea/
+.coverage
+/.coverage
+./apps/htmlcov
+./apps/.coverage

@@ -7,12 +7,12 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth import authenticate
 
-from rest_framework import status
-from rest_framework import generics
+from rest_framework import status, generics
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.reverse import reverse
+from rest_framework.exceptions import NotFound
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -74,52 +74,43 @@ class AllUserApiView(generics.ListAPIView):
 
 class DetailUserApiView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserDetailSerializer
+    queryset = serializer_class.Meta.model.objects.all()
     data, statusCode = Utilities.bad_responses()
 
     def get_queryset(self, *args, **kwargs):
         queryset = self.serializer_class.Meta.model.objects.filter(_id=ObjectId(self.kwargs['pk'])).first()
+        if not queryset:
+            raise NotFound({'data': {}, 'errors': ['User not exist.']})
         return queryset
 
     def get(self, request, pk=None, **kwargs):
-        self.data, self.statusCode = Utilities.bad_responses('not_found')
         user = self.get_queryset()
-
-        if user:
-            self.data, self.statusCode = Utilities.ok_response(
-                'ok', self.serializer_class(user, context={'request': request}).data)
+        self.data, self.statusCode = Utilities.ok_response('ok', self.serializer_class(
+            user, context={'request': request}).data)
 
         return Response(self.data, status=self.statusCode)
 
     def put(self, request, pk=None, **kwargs):
-        self.data, self.statusCode = Utilities.bad_responses('not_found')
-        user = self.get_queryset()
-        if user:
-            serializer = UserSerializer(user, request.data)
-            if serializer.is_valid():
-                serializer.save()
-                self.data, self.statusCode = Utilities.ok_response(serializer=serializer.data)
+        serializer = UserSerializer(self.get_queryset(), request.data)
+        if serializer.is_valid():
+            serializer.save()
+            self.data, self.statusCode = Utilities.ok_response(serializer=serializer.data)
 
         return Response(self.data, status=self.statusCode)
 
     def patch(self, request, pk=None, **kwargs):
-        self.data, self.statusCode = Utilities.bad_responses('not_found')
-        user = self.get_queryset()
-        if user:
-            serializer = UserSerializer(user, request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                self.data, self.statusCode = Utilities.ok_response(serializer=serializer.data)
+        serializer = UserSerializer(self.get_queryset(), request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            self.data, self.statusCode = Utilities.ok_response(serializer=serializer.data)
 
         return Response(self.data, status=self.statusCode)
 
     def delete(self, request, pk=None, **kwargs):
-        self.data, self.statusCode = Utilities.bad_responses('not_found')
-        user = self.get_queryset()
-        if user:
-            user.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        self.get_queryset().delete()
+        self.data, self.statusCode = Utilities.ok_response('patch')
 
-        return Response(self.data, status=status.HTTP_400_BAD_REQUEST)
+        return Response(self.data, self.statusCode)
 
 
 class LoginAPIView(TokenObtainPairView):
@@ -127,7 +118,7 @@ class LoginAPIView(TokenObtainPairView):
     data, statusCode = Utilities.bad_responses()
 
     def post(self, request, *args, **kwargs):
-        self.data = {'data': dict(), 'errors': ['Invalid credentials.']}
+        self.data = {'data': {}, 'errors': ['Invalid credentials.']}
         username = request.data.get('username', '')
         password = request.data.get('password', '')
         user = authenticate(
@@ -160,10 +151,6 @@ class LogoutAPIView(APIView):
         user = User.objects.filter(_id=ObjectId(decode_token['user_id'])).first()
         if user:
             RefreshToken.for_user(user)
-        else:
-            self.data['data'] = ''
-            self.data['errors'] = ['Invalid token.']
-            self.statusCode = status.HTTP_400_BAD_REQUEST
 
         return Response(self.data, status=self.statusCode)
 
@@ -176,16 +163,8 @@ class ResetPasswordOfLoggedInUserAPIView(generics.GenericAPIView):
     def patch(self, request, *args, **kwargs):
         token = request.headers['Authorization'].split()[1]
         decode_token = DecodeToken().decode_token(token)
-        try:
-            request.data._mutable = True
-            request.data['user_id'] = decode_token['user_id']
-            request.data._mutable = False
-        except AttributeError as e:
-            str(e)
-            request.data['user_id'] = decode_token['user_id']
-
+        request.data['user_id'] = decode_token['user_id']
         user = User.objects.filter(_id=ObjectId(decode_token['user_id'])).first()
-
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.update(user, serializer.validated_data)
@@ -200,7 +179,7 @@ class ActiveUserAPIView(APIView):
     permission_classes = [AllowAny]
 
     def patch(self, request, pk=None, *args, **kwargs):
-        decode_token = DecodeToken().decode_token(pk)
+        decode_token = DecodeToken().decode_token(kwargs['token'])
         data = {'data': str(), 'errors': ['Bad request.']}
         status_code = status.HTTP_400_BAD_REQUEST
 
@@ -222,7 +201,7 @@ class ActiveUserAPIView(APIView):
 
 class SendActivateLinkAPIView(generics.CreateAPIView):
     serializer_class = SendActiveLinkUserSerializer
-    data = {'data': str(), 'errors': ['Bad request.']}
+    data = {'data': '', 'errors': ['Bad request.']}
     statusCode = status.HTTP_400_BAD_REQUEST
 
     def post(self, request, *args, **kwargs):
@@ -236,12 +215,12 @@ class SendActivateLinkAPIView(generics.CreateAPIView):
             user.save()
             url = reverse('active_user', kwargs={'token': data}, request=request)
             resp = SendEmail().send_simple_message(user.email, "User activation", f"User register body {url}")
-
-            if resp.status_code == status.HTTP_200_OK:
+            if not resp:
                 self.data['data'] = 'User activation link sent successfully.'
                 self.data['errors'].clear()
                 self.statusCode = status.HTTP_200_OK
             else:
+                self.data['data'] = ''
                 self.data['errors'] = ["Something happened while sending the user activate email."]
                 self.statusCode = status.HTTP_424_FAILED_DEPENDENCY
 
@@ -250,7 +229,7 @@ class SendActivateLinkAPIView(generics.CreateAPIView):
 
 class SendResetPasswordLinkAPIView(generics.GenericAPIView):
     serializer_class = SendResetPwdLinkUserSerializer
-    data = {'data': str(), 'errors': ['Bad request.']}
+    data = {'data': '', 'errors': ['Bad request.']}
     statusCode = status.HTTP_400_BAD_REQUEST
 
     def patch(self, request, *args, **kwargs):
@@ -267,11 +246,12 @@ class SendResetPasswordLinkAPIView(generics.GenericAPIView):
                                                                                  f"the new password {new_pwd} to "
                                                                                  f"change your password. JWT {data} ")
 
-            if resp.status_code == status.HTTP_200_OK:
+            if not resp:
                 self.data['data'] = 'Reset password link sent successfully.'
                 self.data['errors'].clear()
                 self.statusCode = status.HTTP_200_OK
             else:
+                self.data['data'] = ''
                 self.data['errors'] = ["Something happened while sending the user activate email."]
                 self.statusCode = status.HTTP_424_FAILED_DEPENDENCY
 
