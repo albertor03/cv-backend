@@ -102,6 +102,33 @@ def generate_education_data(data_type='default'):
     return data
 
 
+def generate_course_data(data_type="base64"):
+    if data_type == "base64":
+        certificate = base64.b64encode(chance.string(length=10).encode()).decode('utf-8')
+    else:
+        certificate = chance.string(length=10)
+
+    return dict(
+        name=chance.string(length=10),
+        company=chance.string(length=10),
+        end_date=datetime.datetime.now().strftime("%Y-%m-%d"),
+        certificate=certificate,
+        is_active=chance.pickone([True, False])
+    )
+
+
+def generate_course_section_data(data_type='default'):
+    data = dict(
+        name=chance.string(length=10),
+        courses=[],
+    )
+
+    match data_type:
+        case 'with':
+            data['courses'].append(generate_course_data())
+    return data
+
+
 @pytest.fixture()
 def generate_user():
     return generate_user_data()
@@ -162,6 +189,17 @@ def create_information(login):
 
 @pytest.fixture()
 def create_education(login):
-    data = login.post(reverse('list_create_education'), generate_education_data(), format='json').data
-    print(data)
-    return data['data']
+    return login.post(reverse('list_create_education'), generate_education_data(), format='json').data['data']
+
+
+@pytest.fixture()
+def create_course_section(login):
+    return login.post(reverse('list_create_course_section'), generate_course_section_data(), format='json').data['data']
+
+
+@pytest.fixture()
+def create_course(login, create_course_section):
+    course_section_id = create_course_section['_id']
+    course_data = generate_course_data()
+    course_data['course_section_id'] = course_section_id
+    return login.post(reverse('list_create_course'), course_data, format='json').data['data']
