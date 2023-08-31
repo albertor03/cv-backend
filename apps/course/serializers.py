@@ -1,35 +1,35 @@
+import base64
+
 from bson import ObjectId
+from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 
 from .models import CourseSectionsModel, CoursesModel
 
-from rest_framework import serializers
-
 
 class ListUpdateCourseSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = CoursesModel
-        fields = '__all__'
-
-    def update(self, instance, validated_data):
-        data = self.Meta.model.objects.filter(_id=ObjectId(instance.pk)).first()
-        if data.certificate.name:
-            data.certificate.delete(data.certificate.name)
-
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-
-        instance.save()
-
-        return instance
+        exclude = ['created_at', 'updated_at']
 
 
 class CreateCourseSectionSerializer(serializers.ModelSerializer):
     courses = ListUpdateCourseSerializer(many=True, read_only=True)
 
+    def get_query(self, pk):
+        try:
+            pk = ObjectId(pk)
+        except:
+            raise serializers.ValidationError(dict(data={}, errors=['The id received has an invalid format.']))
+
+        data = CourseSectionsModel.objects.all().filter(_id=pk).first()
+        if not data:
+            raise NotFound({'data': {}, 'errors': ['Course Section not found.']})
+        return data
+
     class Meta:
         model = CourseSectionsModel
-        fields = '__all__'
+        exclude = ['created_at', 'updated_at']
 
     def create(self, validated_data):
         courses_list = self.initial_data.pop('courses', [])
@@ -50,12 +50,36 @@ class CreateCourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CoursesModel
-        fields = '__all__'
+        exclude = ['created_at', 'updated_at']
+
+    def get_query(self, pk):
+        try:
+            pk = ObjectId(pk)
+        except:
+            raise serializers.ValidationError(dict(data={}, errors=['The id received has an invalid format.']))
+
+        data = CoursesModel.objects.filter(_id=pk).first()
+        if not data:
+            raise NotFound(detail=dict(data={}, errors=['Course not found.']))
+
+        return data
 
     def validate(self, attrs):
-        self.section = CourseSectionsModel.objects.filter(_id=ObjectId(attrs['course_section_id'])).first()
+        try:
+            pk = ObjectId(attrs['course_section_id'])
+        except:
+            raise serializers.ValidationError(dict(data={}, errors=['The id received has an invalid format.']))
+
+        self.section = CourseSectionsModel.objects.filter(_id=pk).first()
         if not self.section:
-            raise serializers.ValidationError({'data': {}, 'errors': ['Course Section not found.']})
+            raise NotFound({'data': {}, 'errors': ['Course Section not found.']})
+
+        if 'certificate' in attrs and self.context['request'].method != 'PATCH':
+            try:
+                base64.b64decode(attrs['certificate'], validate=True)
+            except:
+                raise serializers.ValidationError(
+                    detail={'data': {}, 'errors': ['The certificate field must be base64.']})
 
         return attrs
 
@@ -75,6 +99,12 @@ class UpdateCourseSectionSerializer(serializers.ModelSerializer):
         model = CourseSectionsModel
         fields = ('name', 'is_active')
 
+    def validate(self, attrs):
+        if len(attrs) == 0:
+            raise serializers.ValidationError(
+                detail=dict(data={}, errors=[f"The {self.Meta.fields} fields are required."]))
+        return attrs
+
 
 class PatchCourseSerializer(serializers.ModelSerializer):
     course_section_id = serializers.CharField()
@@ -84,11 +114,20 @@ class PatchCourseSerializer(serializers.ModelSerializer):
         model = CourseSectionsModel
         fields = ('course_section_id', 'is_active')
 
-    def update(self, instance, validated_data):
-        if validated_data.get('course_section_id', ''):
-            sections = self.Meta.model.objects.all()
+    def validate(self, attrs):
+        if len(attrs.keys()) == 0:
+            raise serializers.ValidationError(
+                detail=dict(data={}, errors=[f"The {self.Meta.fields} fields are required."]))
+        elif len(attrs.keys()) > 1:
+            raise serializers.ValidationError(
+                detail=dict(data={}, errors=[f"Only one of the fields can be sent at a time. Accepted fields:"
+                                             f" {self.Meta.fields}"]))
 
-            course_section_position = 0
+        return attrs
+
+    def update(self, instance, validated_data):
+        if 'course_section_id' in validated_data:
+            sections = self.Meta.model.objects.all()
             for section in sections:
                 if instance.pk in section.courses_id:
                     section.courses_id.remove(instance.pk)
